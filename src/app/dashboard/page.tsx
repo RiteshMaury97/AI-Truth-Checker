@@ -17,7 +17,7 @@ const DashboardPage = () => {
 
   const getAnalysisData = useCallback(async (filter: string, customDate?: { startDate: string, endDate: string }, page: number = 1) => {
     setLoading(true);
-    let url = `${process.env.NEXT_PUBLIC_API_URL}/api/dashboard/reports`;
+    let url = '/api/dashboard/reports';
 
     const params = new URLSearchParams();
     params.append('page', page.toString());
