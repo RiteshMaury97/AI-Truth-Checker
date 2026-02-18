@@ -11,5 +11,5 @@ export const uploadToImageKit = async (file: Buffer, fileName: string) => {
     file,
     fileName,
   });
-  return response.url;
+  return response;
 };

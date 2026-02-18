@@ -19,4 +19,6 @@ export interface AnalysisData {
     analysisResult: AnalysisResult;
     timestamp: string;
     url: string;
+    fileId?: string;
+    imageKitMediaType?: string;
 }

@@ -27,13 +27,14 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(bytes);
 
     try {
-      const imageUrl = await uploadToImageKit(buffer, file.name);
+      const imageKitResponse = await uploadToImageKit(buffer, file.name);
 
-      if (!imageUrl) {
-        // Skip this file and continue with the next one
+      if (!imageKitResponse || !imageKitResponse.url) {
         console.error(`Failed to upload ${file.name} to ImageKit.`);
         continue;
       }
+
+      const { url, fileId, fileType } = imageKitResponse;
 
       const mediaType = file.type.startsWith('image')
         ? 'image'
@@ -41,7 +42,7 @@ export async function POST(req: NextRequest) {
         ? 'video'
         : 'audio';
 
-      const analysisResult = await analyzeMedia(imageUrl, mediaType);
+      const analysisResult = await analyzeMedia(url, mediaType);
 
       const mediaCollection = await connectToDatabase('media_links', 'links');
 
@@ -51,14 +52,15 @@ export async function POST(req: NextRequest) {
         mediaType,
         analysisResult,
         timestamp: new Date().toISOString(),
-        url: imageUrl,
+        url: url,
+        fileId: fileId,
+        imageKitMediaType: fileType,
       };
 
       await mediaCollection.insertOne(analysisData);
       analysisResults.push(analysisResult);
     } catch (error) {
       console.error(`Error processing ${file.name}:`, error);
-      // Skip this file and continue with the next one
       continue;
     }
   }
