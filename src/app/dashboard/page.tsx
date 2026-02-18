@@ -1,29 +1,11 @@
 import React from 'react';
 import AnalysisTable from '@/components/AnalysisTable';
-import { MediaUpload, AnalysisReport, EnrichedMediaUpload } from '@/types/media';
-import { MongoClient, ObjectId } from 'mongodb';
+import { EnrichedMediaUpload } from '@/types/media';
 
 async function getAnalysisData(): Promise<EnrichedMediaUpload[]> {
-    const uri = process.env.MONGODB_URI as string;
-    const client = new MongoClient(uri);
-    await client.connect();
-    const db = client.db('media_db');
-    const mediaCollection = db.collection<MediaUpload>('mediaUploads');
-    const analysisReportsCollection = db.collection<AnalysisReport>('analysisReports');
-
-    const mediaUploads = await mediaCollection.find({}).sort({ uploadDate: -1 }).toArray();
-    const analysisReports = await analysisReportsCollection.find({}).toArray();
-
-    const enrichedMediaUploads = mediaUploads.map(mediaUpload => {
-        const analysisReport = analysisReports.find(report => report.mediaUploadId.equals(mediaUpload._id as ObjectId));
-        return {
-            ...mediaUpload,
-            analysisResult: analysisReport as AnalysisReport,
-        };
-    });
-
-    await client.close();
-    return enrichedMediaUploads;
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/dashboard/reports`);
+    const data = await res.json() as EnrichedMediaUpload[];
+    return data;
 }
 
 const DashboardPage = async () => {

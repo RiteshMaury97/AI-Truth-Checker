@@ -1,4 +1,3 @@
-
 # Blueprint
 
 ## Overview
@@ -13,6 +12,7 @@ This application is a media analysis tool that allows users to upload images, vi
 *   **Theme Switcher:** Users can switch between light and dark modes.
 *   **MongoDB Integration:** The application uses MongoDB to store media upload and analysis report data.
 *   **Separate Collections:** The media uploads and analysis reports are stored in separate collections, linked by an `ObjectId` reference.
+*   **Dashboard API:** A dedicated API endpoint (`/api/dashboard/reports`) provides the dashboard with enriched and sorted analysis data.
 
 ## Project Structure
 
@@ -25,5 +25,4 @@ This application is a media analysis tool that allows users to upload images, vi
 
 ## Current Plan
 
-*   **MongoDB Schema for Analysis Reports:** The analysis results are stored in a separate `analysisReports` collection, linked to the `mediaUploads` collection.
-*   **Link Upload & Report:** A one-to-one relationship is maintained between the `mediaUploads` and `analysisReports` collections using a MongoDB `ObjectId` reference.
+*   **Create Dashboard API (Date-wise Data):** A new API endpoint at `/api/dashboard/reports` has been created to serve the dashboard with all analysis reports, sorted by the latest date, and groupable by date. The endpoint also supports filtering by date and media type.
