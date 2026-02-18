@@ -22,10 +22,10 @@ const ResultCard: React.FC<ResultCardProps> = ({ fileName, mediaType, analysisRe
   const fabricationPercentage = analysisResult.fabricationPercentage * 100;
 
   return (
-    <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 mb-4">
+    <div className="bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-6 mb-4 transform hover:scale-105 transition-transform duration-300">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-sm text-gray-500 dark:text-gray-400">{mediaType}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 capitalize">{mediaType}</p>
           <p className="text-lg font-semibold text-gray-900 dark:text-white">{fileName}</p>
         </div>
         <div className="flex items-center">
@@ -33,11 +33,11 @@ const ResultCard: React.FC<ResultCardProps> = ({ fileName, mediaType, analysisRe
         </div>
       </div>
       <div className="flex items-center">
-        <div className="mr-4">
+        <div className="mr-6">
           <CircularProgress percentage={fabricationPercentage} />
         </div>
-        <div>
-          <p className="text-gray-700 dark:text-gray-200">{analysisResult.explanation}</p>
+        <div className="flex-1">
+          <p className="text-gray-700 dark:text-gray-300 text-sm">{analysisResult.explanation}</p>
         </div>
       </div>
     </div>

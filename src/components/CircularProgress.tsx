@@ -1,4 +1,5 @@
 import React from 'react';
+import CountingNumber from './CountingNumber';
 
 interface CircularProgressProps {
   percentage: number;
@@ -18,7 +19,7 @@ const CircularProgress: React.FC<CircularProgressProps> = ({ percentage }) => {
       className="transform -rotate-90"
     >
       <circle
-        stroke="#e6e6e6"
+        stroke="#374151" // dark:bg-gray-700
         fill="transparent"
         strokeWidth={stroke}
         r={normalizedRadius}
@@ -26,24 +27,21 @@ const CircularProgress: React.FC<CircularProgressProps> = ({ percentage }) => {
         cy={radius}
       />
       <circle
-        stroke="#4f46e5"
+        stroke="#4f46e5" // indigo-600
         fill="transparent"
         strokeWidth={stroke}
         strokeDasharray={circumference + ' ' + circumference}
-        style={{ strokeDashoffset }}
+        style={{ strokeDashoffset, transition: 'stroke-dashoffset 1s ease-out' }}
         r={normalizedRadius}
         cx={radius}
         cy={radius}
       />
-      <text
-        x="50%"
-        y="50%"
-        textAnchor="middle"
-        dy=".3em"
-        className="text-lg font-bold fill-current text-gray-700 dark:text-gray-200"
-      >
-        {`${Math.round(percentage)}%`}
-      </text>
+      <foreignObject x="0" y="0" width="100" height="100">
+        <div className="w-full h-full flex items-center justify-center">
+            <CountingNumber value={percentage} duration={1000} decimals={0} className="text-xl font-bold text-gray-900 dark:text-white transform rotate-90" />
+            <span className="text-xl font-bold text-gray-900 dark:text-white transform rotate-90">%</span>
+        </div>
+      </foreignObject>
     </svg>
   );
 };

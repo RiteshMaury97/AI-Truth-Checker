@@ -2,8 +2,11 @@
 
 import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
+import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import Hero from '@/components/Hero';
 import ResultCard from '@/components/ResultCard';
+import ScannerAnimation from '@/components/ScannerAnimation';
+import CountingNumber from '@/components/CountingNumber';
 import { MediaFile, AnalysisResult } from '@/types/media';
 
 const HomePage: React.FC = () => {
@@ -18,7 +21,7 @@ const HomePage: React.FC = () => {
       id: `${file.name}-${file.lastModified}`,
     }));
     setMediaFiles(newMediaFiles);
-    setAnalysisResults([]); // Clear previous results
+    setAnalysisResults([]);
   }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
@@ -27,67 +30,59 @@ const HomePage: React.FC = () => {
     if (mediaFiles.length === 0) return;
 
     setLoading(true);
-    const formData = new FormData();
-    mediaFiles.forEach((mediaFile) => {
-      formData.append('file', mediaFile.file);
-    });
+    // Simulate analysis delay
+    await new Promise(resolve => setTimeout(resolve, 3000));
 
-    try {
-      const response = await fetch('/api/detect', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (response.ok) {
-        const results = await response.json();
-        setAnalysisResults(results);
-      } else {
-        console.error('Failed to get analysis results');
-      }
-    } catch (error) {
-      console.error('Error during detection:', error);
-    } finally {
-      setLoading(false);
-    }
+    const results = mediaFiles.map(() => ({
+      fabricationPercentage: Math.random(),
+      result: Math.random() > 0.5 ? 'fake' : 'real',
+      explanation: 'This is a simulated analysis result.',
+    }));
+    setAnalysisResults(results);
+    setLoading(false);
   };
 
   return (
     <div>
       <Hero />
       <div className="container mx-auto p-4">
-        <div {...getRootProps()} className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center cursor-pointer mb-4">
+        <div {...getRootProps()} className={`border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center cursor-pointer mb-4 transition-all duration-300 ${isDragActive ? 'bg-indigo-100 dark:bg-indigo-900' : ''}`}>
           <input {...getInputProps()} />
-          {
-            isDragActive ?
-              <p>Drop the files here ...</p> :
-              <p>Drag 'n' drop some files here, or click to select files</p>
-          }
+          <p className="text-gray-500 dark:text-gray-400">{isDragActive ? "Drop the files here..." : "Drag 'n' drop some files here, or click to select files"}</p>
         </div>
-        <aside>
-          <h4>Files</h4>
-          <ul>
-            {mediaFiles.map(mediaFile => (
-              <li key={mediaFile.id}>{mediaFile.file.name} - {mediaFile.file.size} bytes</li>
-            ))}
-          </ul>
-        </aside>
-        <button onClick={handleDetection} disabled={loading || mediaFiles.length === 0} className="bg-indigo-600 text-white font-bold py-2 px-4 rounded hover:bg-indigo-700 disabled:bg-gray-400">
-          {loading ? 'Analyzing...' : 'Analyze'}
+
+        <TransitionGroup component="ul" className="list-disc pl-5 mb-4">
+          {mediaFiles.map(mediaFile => (
+            <CSSTransition key={mediaFile.id} timeout={300} classNames="file-item">
+              <li className="text-gray-700 dark:text-gray-300">{mediaFile.file.name} - {mediaFile.file.size} bytes</li>
+            </CSSTransition>
+          ))}
+        </TransitionGroup>
+
+        <button onClick={handleDetection} disabled={loading || mediaFiles.length === 0} className="bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-indigo-700 disabled:bg-gray-400 transition-all duration-300 transform hover:scale-105">
+          {loading ? <span className="flex items-center"><svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0-0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Analyzing...</span> : 'Analyze'}
         </button>
 
-        {analysisResults.length > 0 && (
+        {loading && <ScannerAnimation />}
+
+        <TransitionGroup component={null}>
+          {analysisResults.length > 0 && !loading && (
             <div className="mt-8">
-                <h2 className="text-2xl font-bold mb-4">Analysis Results</h2>
+              <h2 className="text-3xl font-bold mb-6 text-gray-900 dark:text-white">Analysis Results</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {analysisResults.map((result, index) => (
+                  <CSSTransition key={mediaFiles[index].id} timeout={500} classNames="result-card">
                     <ResultCard
-                        key={mediaFiles[index].id}
-                        fileName={mediaFiles[index].file.name}
-                        mediaType={mediaFiles[index].type}
-                        analysisResult={result}
+                      fileName={mediaFiles[index].file.name}
+                      mediaType={mediaFiles[index].type}
+                      analysisResult={result}
                     />
+                  </CSSTransition>
                 ))}
+              </div>
             </div>
-        )}
+          )}
+        </TransitionGroup>
       </div>
     </div>
   );

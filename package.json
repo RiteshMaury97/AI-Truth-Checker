@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@types/react-transition-group": "^4.4.12",
     "axios": "^1.7.2",
     "framer-motion": "^11.2.10",
     "jspdf": "^4.1.0",
@@ -17,7 +18,8 @@
     "papaparse": "^5.5.3",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "react-dropzone": "^14.2.3"
+    "react-dropzone": "^14.2.3",
+    "react-transition-group": "^4.4.5"
   },
   "devDependencies": {
     "@types/node": "^20",
