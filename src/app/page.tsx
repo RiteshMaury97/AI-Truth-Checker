@@ -86,34 +86,32 @@ const HomePage: React.FC = () => {
 
         {error && <p className="text-red-500 mt-4">{error}</p>}
 
-        <TransitionGroup component={null}>
-          {analysisResults.length > 0 && !loading && (
-            <div className="mt-8">
-              <h2 className="text-3xl font-bold mb-6 text-gray-900 dark:text-white">Analysis Results</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {analysisResults.map((result, index) => {
-                  const mediaFile = mediaFiles[index];
-                  return (
-                    <CSSTransition
-                      key={mediaFile.id}
-                      nodeRef={mediaFile.resultNodeRef}
-                      timeout={500}
-                      classNames="result-card"
-                    >
-                      <div ref={mediaFile.resultNodeRef}>
-                        <ResultCard
-                          fileName={mediaFile.file.name}
-                          mediaType={mediaFile.type}
-                          analysisResult={result}
-                        />
-                      </div>
-                    </CSSTransition>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </TransitionGroup>
+        {analysisResults.length > 0 && !loading && (
+          <div className="mt-8">
+            <h2 className="text-3xl font-bold mb-6 text-gray-900 dark:text-white">Analysis Results</h2>
+            <TransitionGroup className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {analysisResults.map((result, index) => {
+                const mediaFile = mediaFiles[index];
+                return (
+                  <CSSTransition
+                    key={mediaFile.id}
+                    nodeRef={mediaFile.resultNodeRef}
+                    timeout={500}
+                    classNames="result-card"
+                  >
+                    <div ref={mediaFile.resultNodeRef}>
+                      <ResultCard
+                        fileName={mediaFile.file.name}
+                        mediaType={mediaFile.type}
+                        analysisResult={result}
+                      />
+                    </div>
+                  </CSSTransition>
+                );
+              })}
+            </TransitionGroup>
+          </div>
+        )}
 
         <SampleFiles />
         <FAQ />
