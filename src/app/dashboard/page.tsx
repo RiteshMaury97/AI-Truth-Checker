@@ -2,6 +2,7 @@
 
 import React from 'react';
 import AnalysisTable from '@/components/AnalysisTable';
+import OverallStatistics from '@/components/OverallStatistics';
 
 const DashboardPage = () => {
   // In a real application, you would fetch this data from an API.
@@ -48,6 +49,7 @@ const DashboardPage = () => {
           <h1 className="text-5xl font-extrabold text-gray-900 dark:text-white mb-4">Analysis Dashboard</h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">Browse, search, and filter all your analysis records.</p>
         </div>
+        <OverallStatistics data={analysisData} />
         <AnalysisTable data={analysisData} />
       </div>
     </div>
