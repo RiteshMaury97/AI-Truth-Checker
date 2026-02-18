@@ -1,3 +1,4 @@
+
 # Blueprint
 
 ## Overview
@@ -7,17 +8,10 @@ This application is a media analysis tool that allows users to upload images, vi
 ## Features
 
 *   **File Upload:** Users can upload media files through a drag-and-drop interface.
-*   **Media Analysis:** The application analyzes the uploaded media files using the OpenAI API to determine if they are real or fake.
-*   **Dashboard:** A dashboard displays the analysis results in a card-based layout, grouped by date. Each card shows the file name, media type, a preview of the file (using the ImageKit URL), the fabrication percentage, the result status, and the analysis date.
-*   **Date Filtering:** Users can filter the analysis reports on the dashboard by "Today", "Last 7 Days", or a custom date range.
-*   **Pagination:** The dashboard now includes pagination to improve performance and user experience.
-*   **Lazy Loading:** The `ReportCard` component is lazy-loaded to improve initial page load times.
-*   **Theme Switcher:** Users can switch between light and dark modes.
-*   **MongoDB Integration:** The application uses MongoDB to store media upload and analysis report data.
-*   **Separate Collections:** The media uploads and analysis reports are stored in separate collections, linked by an `ObjectId` reference.
-*   **Dashboard API:** A dedicated API endpoint (`/api/dashboard/reports`) provides the dashboard with enriched and sorted analysis data.
-*   **Date-wise Grouping (Backend):** The API now groups analysis reports by date.
-*   **MongoDB Indexing:** A descending index has been added to the `analyzedDate` field in the `analysisReports` collection to improve query performance.
+*   **Media Analysis:** The application analyzes the uploaded media files using a mock detection service to determine if they are real or fake.
+*   **Dashboard:** A dashboard displays the analysis results in a card-based layout. Each card shows the file name, the fabrication percentage, the result, and an explanation.
+*   **MongoDB Integration:** The application uses MongoDB to store analysis reports.
+*   **API Routes:** The application has API routes for detecting deepfakes (`/api/detect`) and for retrieving analysis reports (`/api/reports`).
 
 ## Project Structure
 
@@ -25,9 +19,10 @@ This application is a media analysis tool that allows users to upload images, vi
 *   **/components:** Contains reusable React components.
 *   **/lib:** Contains utility functions, including the MongoDB client.
 *   **/public:** Contains static assets.
-*   **/services:** Contains the media analysis service and the ImageKit service.
+*   **/services:** Contains the media analysis service.
 *   **/types:** Contains TypeScript type definitions.
 
 ## Current Plan
 
-*   **Performance Improvements:** Implemented pagination, lazy loading, and MongoDB indexing to improve the performance of the dashboard.
+*   **Dashboard Implementation:** Implemented a new dashboard page to display analysis reports from the database.
+*   **Database Integration:** Connected the application to a MongoDB database to store and retrieve analysis reports.

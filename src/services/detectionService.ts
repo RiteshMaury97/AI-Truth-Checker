@@ -1,25 +1,25 @@
-import { AnalysisResult } from '../types/media';
 
-export async function analyzeVideo(file: File): Promise<AnalysisResult> {
-    // Simulate a delay for the analysis
-    await new Promise(resolve => setTimeout(resolve, 2000));
+import { AnalysisResult } from '@/types/media';
 
-    // TODO: Replace with a real deepfake detection model
-    // For now, we'll use the file size to make the result a bit less random
-    const fabricationPercentage = Math.random();
-    const result = fabricationPercentage > 0.5 ? 'fake' : 'real';
+// Mock analysis function
+const performMockAnalysis = (file: File): AnalysisResult => {
+  // Simulate a delay to mimic a real analysis process
+  const delay = Math.random() * 2000 + 500; // 500ms to 2.5s
+  //while (new Date().getTime() < new Date().getTime() + delay) {}
 
-    // Placeholder for ChatGPT analysis
-    const explanation = await getExplanationFromChatGPT(file);
+  const isDeepfake = Math.random() < 0.5;
+  const fabricationPercentage = isDeepfake ? Math.random() * 50 + 50 : Math.random() * 20;
 
-    return { fabricationPercentage, result, explanation };
-}
+  return {
+    fabricationPercentage,
+    result: isDeepfake ? 'fake' : 'real',
+    explanation: isDeepfake
+      ? 'The analysis suggests a high probability of digital manipulation. This is based on inconsistencies in lighting, shadows, and subtle artifacts in the media.'
+      : 'The analysis indicates that the media is likely authentic. No significant signs of digital manipulation were detected.',
+  };
+};
 
-async function getExplanationFromChatGPT(file: File): Promise<string> {
-    // TODO: Implement the actual API call to ChatGPT
-    // This would involve using the OPENAI_API_KEY from environment variables
-    console.log(`Analyzing ${file.name} with ChatGPT...`);
-    return new Promise(resolve => setTimeout(() => {
-        resolve("This is a placeholder explanation from ChatGPT.");
-    }, 1000));
-}
+export const analyzeVideo = async (file: File): Promise<AnalysisResult> => {
+  console.log(`Analyzing file: ${file.name}`);
+  return performMockAnalysis(file);
+};

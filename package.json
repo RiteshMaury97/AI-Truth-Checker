@@ -12,7 +12,7 @@
     "@types/react-modal": "^3.16.3",
     "@types/react-transition-group": "^4.4.12",
     "axios": "^1.7.2",
-    "framer-motion": "^11.2.10",
+    "framer-motion": "^11.18.2",
     "imagekit": "^6.0.0",
     "jspdf": "^4.1.0",
     "jspdf-autotable": "^5.0.7",
@@ -24,6 +24,7 @@
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-dropzone": "^14.2.3",
+    "react-icons": "^5.5.0",
     "react-modal": "^3.16.3",
     "react-transition-group": "^4.4.5"
   },
