@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, createRef } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import Hero from '@/components/Hero';
@@ -11,17 +11,24 @@ import FAQ from '@/components/FAQ';
 import { MediaFile, AnalysisResult } from '@/types/media';
 import { analyzeMedia } from '@/services/aiService';
 
+interface MediaFileWithNodeRef extends MediaFile {
+  fileNodeRef: React.RefObject<HTMLLIElement>;
+  resultNodeRef: React.RefObject<HTMLDivElement>;
+}
+
 const HomePage: React.FC = () => {
-  const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
+  const [mediaFiles, setMediaFiles] = useState<MediaFileWithNodeRef[]>([]);
   const [analysisResults, setAnalysisResults] = useState<AnalysisResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    const newMediaFiles: MediaFile[] = acceptedFiles.map((file) => ({
+    const newMediaFiles: MediaFileWithNodeRef[] = acceptedFiles.map((file) => ({
       file,
       type: file.type.startsWith('image/') ? 'image' : 'video',
       id: `${file.name}-${file.lastModified}`,
+      fileNodeRef: createRef<HTMLLIElement>(),
+      resultNodeRef: createRef<HTMLDivElement>(),
     }));
     setMediaFiles(newMediaFiles);
     setAnalysisResults([]);
@@ -60,8 +67,13 @@ const HomePage: React.FC = () => {
 
         <TransitionGroup component="ul" className="list-disc pl-5 mb-4">
           {mediaFiles.map(mediaFile => (
-            <CSSTransition key={mediaFile.id} timeout={300} classNames="file-item">
-              <li className="text-gray-700 dark:text-gray-300">{mediaFile.file.name} - {mediaFile.file.size} bytes</li>
+            <CSSTransition
+              key={mediaFile.id}
+              nodeRef={mediaFile.fileNodeRef}
+              timeout={300}
+              classNames="file-item"
+            >
+              <li ref={mediaFile.fileNodeRef} className="text-gray-700 dark:text-gray-300">{mediaFile.file.name} - {mediaFile.file.size} bytes</li>
             </CSSTransition>
           ))}
         </TransitionGroup>
@@ -79,15 +91,25 @@ const HomePage: React.FC = () => {
             <div className="mt-8">
               <h2 className="text-3xl font-bold mb-6 text-gray-900 dark:text-white">Analysis Results</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {analysisResults.map((result, index) => (
-                  <CSSTransition key={mediaFiles[index].id} timeout={500} classNames="result-card">
-                    <ResultCard
-                      fileName={mediaFiles[index].file.name}
-                      mediaType={mediaFiles[index].type}
-                      analysisResult={result}
-                    />
-                  </CSSTransition>
-                ))}
+                {analysisResults.map((result, index) => {
+                  const mediaFile = mediaFiles[index];
+                  return (
+                    <CSSTransition
+                      key={mediaFile.id}
+                      nodeRef={mediaFile.resultNodeRef}
+                      timeout={500}
+                      classNames="result-card"
+                    >
+                      <div ref={mediaFile.resultNodeRef}>
+                        <ResultCard
+                          fileName={mediaFile.file.name}
+                          mediaType={mediaFile.type}
+                          analysisResult={result}
+                        />
+                      </div>
+                    </CSSTransition>
+                  );
+                })}
               </div>
             </div>
           )}
