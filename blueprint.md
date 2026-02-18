@@ -8,7 +8,7 @@ This application is a media analysis tool that allows users to upload images, vi
 
 *   **File Upload:** Users can upload media files through a drag-and-drop interface.
 *   **Media Analysis:** The application analyzes the uploaded media files using the OpenAI API to determine if they are real or fake.
-*   **Dashboard:** A dashboard displays the analysis results in a card-based layout, grouped by date. Each card shows the analysis result, a thumbnail of the media, and the authenticity and fabrication percentages.
+*   **Dashboard:** A dashboard displays the analysis results in a card-based layout, grouped by date. Each card shows the file name, media type, a preview of the file (using the ImageKit URL), the fabrication percentage, the result status, and the analysis date.
 *   **Theme Switcher:** Users can switch between light and dark modes.
 *   **MongoDB Integration:** The application uses MongoDB to store media upload and analysis report data.
 *   **Separate Collections:** The media uploads and analysis reports are stored in separate collections, linked by an `ObjectId` reference.
@@ -26,4 +26,4 @@ This application is a media analysis tool that allows users to upload images, vi
 
 ## Current Plan
 
-*   **React Dashboard Integration:** The dashboard page has been updated to display the analysis reports in a card-based layout, grouped by date.
+*   **Dashboard Report Card:** The `ReportCard` component has been updated to display the media type, in addition to the other report details.
