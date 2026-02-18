@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
+import Image from 'next/image';
 
 interface AnalysisResult {
   is_deepfake: boolean;
@@ -73,7 +74,7 @@ export default function FileUpload() {
                 <input {...getInputProps()} />
                 <div className="text-center">
                     {preview ? (
-                        <img src={preview} alt="Preview" className="mx-auto h-48 rounded-md" />
+                        <Image src={preview} alt="Preview" width={192} height={192} className="mx-auto h-48 w-auto rounded-md" />
                     ) : (
                         <>
                             <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">

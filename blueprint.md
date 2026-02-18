@@ -21,6 +21,7 @@ A Next.js application for detecting deepfakes in images and videos. The applicat
 - **FileUpload (`src/components/FileUpload.tsx`):** A component for uploading files and displaying analysis results.
 - **Member (`src/components/Member.tsx`):** A component for displaying team members.
 - **InfoCard (`src/components/InfoCard.tsx`):** A component for displaying information in a card format.
+- **Hero (`src/components/Hero.tsx`):** The hero section for the landing page.
 
 ### Pages
 
@@ -33,24 +34,17 @@ A Next.js application for detecting deepfakes in images and videos. The applicat
 
 - **`/api/detect` (`src/app/api/detect/route.ts`):** The API endpoint for analyzing uploaded files.
 
-## Current Task: Improve UI and Add New Pages
+## Current Task: Refine Landing Page
 
 ### Plan
 
-1.  **Improve the styling of existing components.**
-    -   [x] Add modern styling to the `Navbar` component.
-    -   [x] Add modern styling to the `Footer` component.
-    -   [x] Add modern styling to the `FileUpload` component, including a drag-and-drop feature.
-2.  **Create new pages.**
-    -   [x] Create the `Detection` page (`src/app/detection/page.tsx`).
-    -   [x] Create the `Report` page (`src/app/report/page.tsx`).
-    -   [x] Create the `About` page (`src/app/about/page.tsx`).
-3.  **Enhance the `About` page.**
-    -   [x] Create a new `Member` component for the "Meet the Team" section.
-    -   [x] Add sections for "Our Mission," "Our Technology," and "Meet the Team."
-    -   [x] Add professional-looking icons and styling.
-    -   [x] Add a link to the `About` page in the `Navbar`.
-4.  **Enhance the `Report` page.**
-    -   [x] Create a new `InfoCard` component for displaying information.
-    -   [x] Add sections for "File Information" and "Analysis Details."
-    -   [x] Add a "Download Report" button.
+1.  **Create the `Hero` component.**
+    -   [x] Create the `Hero.tsx` file in the `src/components` directory.
+    -   [x] Add a title, subtitle, and buttons for "Upload Media" and "Learn More."
+    -   [x] Apply a dark AI theme with a gradient background.
+2.  **Update the home page.**
+    -   [x] Replace the content of `src/app/page.tsx` with the new `Hero` component.
+3.  **Refine the `Hero` component.**
+    -   [x] Make the hero section full-screen to remove whitespace.
+    -   [x] Remove the container from the main layout to allow the hero section to be full-width.
+    -   [x] Verify that all other pages have their own container.

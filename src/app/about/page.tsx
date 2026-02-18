@@ -1,5 +1,6 @@
 import React from 'react';
 import Member from '@/components/Member';
+import Image from 'next/image';
 
 const AboutPage = () => {
   return (
@@ -14,7 +15,7 @@ const AboutPage = () => {
           <h2 className="text-4xl font-extrabold text-gray-900 text-center mb-12">Our Technology</h2>
           <div className="flex flex-col md:flex-row items-center justify-center gap-12">
             <div className="w-full md:w-1/2">
-              <img src="/tech.jpg" alt="Technology" className="rounded-lg shadow-xl" />
+              <Image src="/tech.jpg" alt="Technology" width={500} height={300} className="rounded-lg shadow-xl" />
             </div>
             <div className="w-full md:w-1/2">
               <p className="text-lg text-gray-700 leading-relaxed">We use a state-of-the-art deep learning model that has been trained on a massive dataset of real and fake images and videos. Our model is able to identify subtle inconsistencies in the media that are invisible to the naked eye, allowing us to detect deepfakes with a high degree of accuracy. We are constantly working to improve our model and stay ahead of the latest deepfake techniques.</p>

@@ -8,7 +8,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <div className="flex flex-col min-h-screen">
           <Navbar />
-          <main className="flex-grow container mx-auto p-4">{children}</main>
+          <main className="flex-grow">{children}</main>
           <Footer />
         </div>
       </body>
