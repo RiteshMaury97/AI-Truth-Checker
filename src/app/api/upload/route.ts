@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { MongoClient } from 'mongodb';
 import { uploadToImageKit } from '@/services/imagekit';
-import { analyzeMedia } from '@/services/mediaAnalysis';
+import { analyzeMediaWithAI } from '@/services/aiAnalysis';
 import { MediaUpload } from '@/types/media';
 
 const uri = process.env.MONGODB_URI as string;
@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
         ? 'video'
         : 'audio';
 
-      const analysisResult = await analyzeMedia(url, mediaType);
+      const analysisResult = await analyzeMediaWithAI(url, mediaType);
 
       const mediaCollection = await connectToDatabase('media_db', 'mediaUploads');
 

@@ -5,11 +5,16 @@ import { AnalysisResult, MediaType, MediaUpload } from '@/types/media';
 import Papa from 'papaparse';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import Modal from 'react-modal';
+
+Modal.setAppElement('#__next');
 
 const AnalysisTable = ({ data }: { data: MediaUpload[] }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<MediaType | 'all'>('all');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc' | 'none'>('none');
+  const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [selectedAnalysis, setSelectedAnalysis] = useState<AnalysisResult | null>(null);
 
   const filteredData = useMemo(() => {
     let filtered = data;
@@ -80,6 +85,16 @@ const AnalysisTable = ({ data }: { data: MediaUpload[] }) => {
     doc.save('analysis_report.pdf');
   };
 
+  const openModal = (analysis: AnalysisResult) => {
+    setSelectedAnalysis(analysis);
+    setModalIsOpen(true);
+  };
+
+  const closeModal = () => {
+    setModalIsOpen(false);
+    setSelectedAnalysis(null);
+  };
+
   return (
     <div className="bg-white dark:bg-gray-800 shadow-xl rounded-2xl p-6">
         <div className="flex flex-col md:flex-row items-center justify-between mb-6">
@@ -131,6 +146,7 @@ const AnalysisTable = ({ data }: { data: MediaUpload[] }) => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Fabrication %</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Risk Level</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Time</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Details</th>
                     </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
@@ -146,6 +162,11 @@ const AnalysisTable = ({ data }: { data: MediaUpload[] }) => {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{(item.analysisResult.fabricationPercentage * 100).toFixed(2)}%</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">{getRiskLevel(item.analysisResult.fabricationPercentage * 100)}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{new Date(item.uploadDate).toLocaleString()}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <button onClick={() => openModal(item.analysisResult)} className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-200">
+                                Details
+                            </button>
+                        </td>
                     </tr>
                     ))}
                 </tbody>
@@ -158,6 +179,30 @@ const AnalysisTable = ({ data }: { data: MediaUpload[] }) => {
                 <p>Average Fabrication: {(filteredData.reduce((acc, item) => acc + item.analysisResult.fabricationPercentage, 0) / filteredData.length * 100).toFixed(2)}%</p>
             </div>
         )}
+
+        <Modal
+            isOpen={modalIsOpen}
+            onRequestClose={closeModal}
+            contentLabel="Analysis Details"
+            className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 max-w-lg mx-auto my-12"
+            overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center"
+        >
+            {selectedAnalysis && (
+                <div>
+                    <h2 className="text-2xl font-bold mb-4">Analysis Details</h2>
+                    <p className="mb-4"><strong>Explanation:</strong> {selectedAnalysis.explanation}</p>
+                    <div>
+                        <h3 className="text-lg font-bold mb-2">Scores:</h3>
+                        <ul className="list-disc list-inside">
+                            {Object.entries(selectedAnalysis.scores).map(([key, value]) => (
+                                <li key={key}>{key}: {value}</li>
+                            ))}
+                        </ul>
+                    </div>
+                    <button onClick={closeModal} className="mt-6 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">Close</button>
+                </div>
+            )}
+        </Modal>
     </div>
   );
 };

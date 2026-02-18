@@ -10,16 +10,15 @@ export interface AnalysisResult {
   fabricationPercentage: number;
   result: 'real' | 'fake';
   explanation: string;
+  scores: Record<string, number>;
 }
 
-export interface AnalysisData {
-    id: string;
+export interface MediaUpload {
     fileName: string;
     mediaType: MediaType;
-    analysisResult: AnalysisResult;
-    uploadDate: string;
     imagekitUrl: string;
     imagekitFileId?: string;
-    imageKitMediaType?: string;
-    createdAt: string;
+    analysisResult: AnalysisResult;
+    uploadDate: Date;
+    createdAt: Date;
 }
