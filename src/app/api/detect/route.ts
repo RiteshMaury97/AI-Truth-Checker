@@ -1,46 +1,76 @@
 
 import { NextResponse } from 'next/server';
-import { analyzeVideo } from '@/services/detectionService';
-import { connectToDatabase } from '@/lib/mongodb';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import connectToDatabase from '@/lib/mongodb';
+import Report from '@/models/Report';
 
-export async function POST(request: Request) {
-  console.log('Received request to /api/detect');
+// Initialize the Google Generative AI client
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+
+async function analyzeWithGemini(fileUrl: string) {
   try {
-    const formData = await request.formData();
-    const files = formData.getAll('file');
+    const model = genAI.getGenerativeModel({ model: 'gemini-pro-vision' });
+    const prompt = `Analyze this media to determine if it is a deepfake. Provide a confidence score from 0 to 100 and a brief explanation of your findings.`;
 
-    if (!files || files.length === 0) {
-      console.error('No files found in request');
-      return NextResponse.json({ error: 'No files found' }, { status: 400 });
+    // Fetch the image data from the URL
+    const response = await fetch(fileUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch image: ${response.status} ${response.statusText}`);
     }
+    const imageBuffer = await response.arrayBuffer();
+    const imageBase64 = Buffer.from(imageBuffer).toString('base64');
 
-    const results = [];
-    const { db } = await connectToDatabase();
+    const imagePart = {
+      inlineData: {
+        data: imageBase64,
+        mimeType: response.headers.get('content-type') || 'image/jpeg',
+      },
+    };
 
-    for (const file of files) {
-      if (file instanceof File) {
-        console.log(`File received: ${file.name}, size: ${file.size}`);
-        const result = await analyzeVideo(file);
-        results.push(result);
-        console.log('Analysis successful for file:', file.name, result);
+    const result = await model.generateContent([prompt, imagePart]);
+    const analysisResult = result.response.text();
+    
+    // Basic parsing of the result, assuming a consistent format from Gemini
+    const confidenceMatch = analysisResult.match(/Confidence Score: (\d+)/);
+    const explanationMatch = analysisResult.match(/Explanation: (.*)/);
 
-        // Save to database
-        await db.collection('reports').insertOne({
-          fileName: file.name,
-          ...result,
-          createdAt: new Date(),
-        });
-      }
-    }
-
-    return NextResponse.json(results);
+    return {
+      confidence: confidenceMatch ? parseInt(confidenceMatch[1], 10) : 0,
+      explanation: explanationMatch ? explanationMatch[1].trim() : 'No explanation provided.',
+      isdeepfake: (confidenceMatch ? parseInt(confidenceMatch[1], 10) : 0) > 75, // Example threshold
+    };
   } catch (error) {
-    if (error instanceof Error) {
-      console.error('Error in /api/detect:', error.message);
-      console.error(error.stack);
-    } else {
-      console.error('An unknown error occurred in /api/detect:', error);
+    console.error('Error analyzing with Gemini:', error);
+    throw new Error('Failed to analyze with Gemini');
+  }
+}
+
+export async function POST(req: Request) {
+  await connectToDatabase();
+  const { files } = await req.json();
+
+  if (!files || !Array.isArray(files)) {
+    return NextResponse.json({ message: 'Invalid request' }, { status: 400 });
+  }
+
+  try {
+    const reports = [];
+    for (const file of files) {
+      const analysis = await analyzeWithGemini(file.url);
+
+      const report = new Report({
+        ...file,
+        ...analysis,
+        status: 'completed',
+      });
+
+      await report.save();
+      reports.push(report);
     }
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+
+    return NextResponse.json({ reports }, { status: 201 });
+  } catch (error) {
+    console.error('Error processing analysis request:', error);
+    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }
