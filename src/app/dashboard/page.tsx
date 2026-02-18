@@ -4,8 +4,12 @@ import { EnrichedMediaUpload } from '@/types/media';
 
 async function getAnalysisData(): Promise<EnrichedMediaUpload[]> {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/dashboard/reports`);
-    const data = await res.json() as EnrichedMediaUpload[];
-    return data;
+    const data = await res.json() as Record<string, EnrichedMediaUpload[]>;
+    
+    // Flatten the date-grouped data into a single array for the table
+    const flattenedData = Object.values(data).flat();
+    
+    return flattenedData;
 }
 
 const DashboardPage = async () => {

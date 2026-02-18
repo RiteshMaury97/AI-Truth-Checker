@@ -13,6 +13,7 @@ This application is a media analysis tool that allows users to upload images, vi
 *   **MongoDB Integration:** The application uses MongoDB to store media upload and analysis report data.
 *   **Separate Collections:** The media uploads and analysis reports are stored in separate collections, linked by an `ObjectId` reference.
 *   **Dashboard API:** A dedicated API endpoint (`/api/dashboard/reports`) provides the dashboard with enriched and sorted analysis data.
+*   **Date-wise Grouping (Backend):** The API now groups analysis reports by date.
 
 ## Project Structure
 
@@ -25,4 +26,4 @@ This application is a media analysis tool that allows users to upload images, vi
 
 ## Current Plan
 
-*   **Create Dashboard API (Date-wise Data):** A new API endpoint at `/api/dashboard/reports` has been created to serve the dashboard with all analysis reports, sorted by the latest date, and groupable by date. The endpoint also supports filtering by date and media type.
+*   **Date-wise Grouping Logic (Backend):** The API now returns date-grouped data.

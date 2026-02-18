@@ -37,7 +37,6 @@ export async function GET(req: NextRequest) {
     
     const reports = await analysisReportsCollection.aggregate([
         { $match: query },
-        { $sort: { analyzedDate: -1 } },
         {
             $lookup: {
                 from: 'mediaUploads',
@@ -74,10 +73,24 @@ export async function GET(req: NextRequest) {
                     createdAt: '$createdAt',
                 }
             }
+        },
+        {
+            $group: {
+                _id: { $dateToString: { format: "%Y-%m-%d", date: "$analysisResult.analyzedDate" } },
+                reports: { $push: "$$ROOT" }
+            }
+        },
+        {
+            $sort: { _id: -1 }
         }
     ]).toArray();
 
-    return NextResponse.json(reports);
+    const groupedByDate = reports.reduce((acc, group) => {
+        acc[group._id] = group.reports;
+        return acc;
+    }, {} as Record<string, any[]>);
+
+    return NextResponse.json(groupedByDate);
   } catch (error) {
     console.error('Error fetching analysis reports:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
