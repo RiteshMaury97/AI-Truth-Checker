@@ -1,33 +1,56 @@
-# AI Deepfake Detector Blueprint
+
+# Project Blueprint
 
 ## Overview
 
-This application is a web-based tool for detecting deepfakes in images and videos. Users can upload files, and the application will analyze them using a deep learning model to determine if they have been manipulated.
+A Next.js application for detecting deepfakes in images and videos. The application provides a simple interface for users to upload a file and view the analysis results.
 
-## Project Outline
+## Design and Features
 
-### Style and Design
+### Styling
 
-*   **Framework:** Next.js with Tailwind CSS
-*   **Layout:** A simple, clean layout with a navigation bar, a main content area, and a footer.
-*   **Color Scheme:** A modern color scheme with a dark navigation bar and footer, and a light main content area.
-*   **Typography:** Clear and readable fonts.
+- **Framework:** Tailwind CSS
+- **Global Styles:** `src/styles/globals.css`
+- **PostCSS:** `postcss.config.js`
+- **Tailwind Config:** `tailwind.config.js`
 
-### Features
+### Components
 
-*   **File Upload:** Users can upload image and video files.
-*   **Deepfake Analysis:** The application will use a deep learning model to analyze the uploaded files for signs of manipulation.
-*   **Result Display:** The application will display the results of the analysis, including a determination of whether the file is a deepfake and a confidence score.
+- **Navbar (`src/components/Navbar.tsx`):** The main navigation bar for the application.
+- **Footer (`src/components/Footer.tsx`):** The footer for the application.
+- **FileUpload (`src/components/FileUpload.tsx`):** A component for uploading files and displaying analysis results.
+- **Member (`src/components/Member.tsx`):** A component for displaying team members.
+- **InfoCard (`src/components/InfoCard.tsx`):** A component for displaying information in a card format.
 
-## Current Plan
+### Pages
 
-The project has been structured with a `src` directory, and the Next.js App Router is now located in `src/app`. The directory structure is as follows:
+- **Homepage (`src/app/page.tsx`):** The main landing page of the application.
+- **Detection (`src/app/detection/page.tsx`):** The page for uploading files and viewing analysis results.
+- **Report (`src/app/report/page.tsx`):** The page for viewing detailed analysis reports.
+- **About (`src/app/about/page.tsx`):** The page for information about the application and its creators.
 
-*   `src/app`: for application routes.
-*   `src/components`: for reusable UI components.
-*   `src/services`: for API and other services.
-*   `src/utils`: for utility functions.
-*   `src/assets`: for static assets like images and fonts.
-*   `src/styles`: for global styles.
+### API Routes
 
-This corrected structure aligns with Next.js best practices and provides a solid foundation for future development.
+- **`/api/detect` (`src/app/api/detect/route.ts`):** The API endpoint for analyzing uploaded files.
+
+## Current Task: Improve UI and Add New Pages
+
+### Plan
+
+1.  **Improve the styling of existing components.**
+    -   [x] Add modern styling to the `Navbar` component.
+    -   [x] Add modern styling to the `Footer` component.
+    -   [x] Add modern styling to the `FileUpload` component, including a drag-and-drop feature.
+2.  **Create new pages.**
+    -   [x] Create the `Detection` page (`src/app/detection/page.tsx`).
+    -   [x] Create the `Report` page (`src/app/report/page.tsx`).
+    -   [x] Create the `About` page (`src/app/about/page.tsx`).
+3.  **Enhance the `About` page.**
+    -   [x] Create a new `Member` component for the "Meet the Team" section.
+    -   [x] Add sections for "Our Mission," "Our Technology," and "Meet the Team."
+    -   [x] Add professional-looking icons and styling.
+    -   [x] Add a link to the `About` page in the `Navbar`.
+4.  **Enhance the `Report` page.**
+    -   [x] Create a new `InfoCard` component for displaying information.
+    -   [x] Add sections for "File Information" and "Analysis Details."
+    -   [x] Add a "Download Report" button.

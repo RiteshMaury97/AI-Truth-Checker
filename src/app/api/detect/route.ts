@@ -1,16 +1,30 @@
 import { NextResponse } from 'next/server';
+import { analyzeVideo } from '../../../services/detectionService';
 
 export async function POST(request: Request) {
-  const formData = await request.formData();
-  const file = formData.get('file');
+  console.log('Received request to /api/detect');
+  try {
+    const formData = await request.formData();
+    const file = formData.get('file');
 
-  if (!file) {
-    return NextResponse.json({ error: 'No file found' }, { status: 400 });
+    if (!file || !(file instanceof File)) {
+      console.error('No file found in request');
+      return NextResponse.json({ error: 'No file found' }, { status: 400 });
+    }
+
+    console.log(`File received: ${file.name}, size: ${file.size}`);
+
+    const result = await analyzeVideo(file);
+    console.log('Analysis successful', result);
+
+    return NextResponse.json(result);
+  } catch (error) {
+    if (error instanceof Error) {
+        console.error('Error in /api/detect:', error.message);
+        console.error(error.stack);
+    } else {
+        console.error('An unknown error occurred in /api/detect:', error);
+    }
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
-
-  // TODO: Integrate a real deepfake detection model here
-  const is_deepfake = Math.random() > 0.5;
-  const confidence = Math.random();
-
-  return NextResponse.json({ is_deepfake, confidence });
 }
