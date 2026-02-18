@@ -18,4 +18,5 @@ export interface AnalysisData {
     mediaType: MediaType;
     analysisResult: AnalysisResult;
     timestamp: string;
+    url: string;
 }

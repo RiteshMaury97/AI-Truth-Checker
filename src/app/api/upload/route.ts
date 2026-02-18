@@ -1,16 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { promises as fs } from 'fs';
-import path from 'path';
 import { MongoClient } from 'mongodb';
+import { uploadToImageKit } from '@/services/imagekit';
 import { analyzeMedia } from '@/services/mediaAnalysis';
-import { MediaFile, AnalysisData } from '@/types/media';
+import { AnalysisData } from '@/types/media';
 
 const uri = process.env.MONGODB_URI as string;
 const client = new MongoClient(uri);
 
-async function connectToDatabase() {
+async function connectToDatabase(dbName: string, collectionName: string) {
   await client.connect();
-  return client.db('test').collection<AnalysisData>('media');
+  return client.db(dbName).collection(collectionName);
 }
 
 export async function POST(req: NextRequest) {
@@ -24,16 +23,13 @@ export async function POST(req: NextRequest) {
   const bytes = await file.arrayBuffer();
   const buffer = Buffer.from(bytes);
 
-  const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
-  await fs.mkdir(uploadsDir, { recursive: true });
-  const filePath = path.join(uploadsDir, file.name);
-  await fs.writeFile(filePath, buffer);
+  const imageUrl = await uploadToImageKit(buffer, file.name);
 
   const mediaType = file.type.startsWith('image') ? 'image' : file.type.startsWith('video') ? 'video' : 'audio';
 
-  const analysisResult = await analyzeMedia(filePath, mediaType);
+  const analysisResult = await analyzeMedia(imageUrl, mediaType);
 
-  const mediaCollection = await connectToDatabase();
+  const mediaCollection = await connectToDatabase('media_links', 'links');
 
   const analysisData: AnalysisData = {
     id: new Date().toISOString(),
@@ -41,6 +37,7 @@ export async function POST(req: NextRequest) {
     mediaType,
     analysisResult,
     timestamp: new Date().toISOString(),
+    url: imageUrl,
   };
 
   await mediaCollection.insertOne(analysisData);

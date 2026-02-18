@@ -12,6 +12,7 @@ interface AnalysisData {
   mediaType: MediaType;
   analysisResult: AnalysisResult;
   timestamp: string;
+  url: string;
 }
 
 const AnalysisTable = ({ data }: { data: AnalysisData[] }) => {
@@ -146,9 +147,9 @@ const AnalysisTable = ({ data }: { data: AnalysisData[] }) => {
                     <tr key={item.id}>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{item.fileName}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                            {item.mediaType === 'image' && <img src={`/uploads/${item.fileName}`} alt={item.fileName} className="w-24 h-24 object-cover" />}
-                            {item.mediaType === 'video' && <video src={`/uploads/${item.fileName}`} controls className="w-24 h-24" />}
-                            {item.mediaType === 'audio' && <audio src={`/uploads/${item.fileName}`} controls />}
+                            {item.mediaType === 'image' && <img src={item.url} alt={item.fileName} className="w-24 h-24 object-cover" />}
+                            {item.mediaType === 'video' && <video src={item.url} controls className="w-24 h-24" />}
+                            {item.mediaType === 'audio' && <audio src={item.url} controls />}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{item.mediaType}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{(item.analysisResult.fabricationPercentage * 100).toFixed(2)}%</td>

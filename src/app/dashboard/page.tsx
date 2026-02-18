@@ -8,8 +8,8 @@ async function getAnalysisData(): Promise<AnalysisData[]> {
     const uri = process.env.MONGODB_URI as string;
     const client = new MongoClient(uri);
     await client.connect();
-    const db = client.db('test');
-    const mediaCollection = db.collection<AnalysisData>('media');
+    const db = client.db('media_links');
+    const mediaCollection = db.collection<AnalysisData>('links');
     const data = await mediaCollection.find({}).toArray();
     await client.close();
     return data;

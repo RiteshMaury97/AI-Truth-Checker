@@ -12,6 +12,7 @@
     "@types/react-transition-group": "^4.4.12",
     "axios": "^1.7.2",
     "framer-motion": "^11.2.10",
+    "imagekit": "^6.0.0",
     "jspdf": "^4.1.0",
     "jspdf-autotable": "^5.0.7",
     "mongodb": "^6.21.0",
