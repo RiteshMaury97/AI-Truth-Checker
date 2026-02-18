@@ -1,83 +1,28 @@
+
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { MediaFile, MediaType, AnalysisResult } from '@/types/media';
+import { FaFileImage, FaFileVideo, FaFileAudio, FaTimes } from 'react-icons/fa';
+import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation'; // Import the useRouter hook
 
-const getMediaType = (file: File): MediaType => {
-  if (file.type.startsWith('image/')) return 'image';
-  if (file.type.startsWith('video/')) return 'video';
-  if (file.type.startsWith('audio/')) return 'audio';
-  return 'image'; // default to image for unknown types
+const fileTypeIcons = {
+  'image/': FaFileImage,
+  'video/': FaFileVideo,
+  'audio/': FaFileAudio,
 };
 
-const FileIcon = ({ mediaType }: { mediaType: MediaType }) => {
-  if (mediaType === 'image') {
-    return <>🖼️</>;
-  }
-  if (mediaType === 'video') {
-    return <>🎥</>;
-  }
-  if (mediaType === 'audio') {
-    return <>🎵</>;
-  }
-  return <>📄</>;
-};
-
-export default function MultiUploadBox() {
-  const [files, setFiles] = useState<MediaFile[]>([]);
-  const [analysisResults, setAnalysisResults] = useState<AnalysisResult[]>([]);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    const newMediaFiles: MediaFile[] = acceptedFiles.map(file => ({
-      id: new Date().toISOString() + file.name,
-      file,
-      type: getMediaType(file),
-    }));
-    setFiles(prevFiles => [...prevFiles, ...newMediaFiles]);
-  }, []);
-
-  const removeFile = (fileToRemove: MediaFile) => {
-    setFiles(prevFiles => prevFiles.filter(file => file.id !== fileToRemove.id));
-  };
-
-  const handleAnalyze = async () => {
-    if (files.length === 0) return;
-
-    setIsAnalyzing(true);
-    setError(null);
-    setAnalysisResults([]);
-
-    const formData = new FormData();
-    files.forEach(file => {
-      formData.append('files', file.file);
-    });
-
-    try {
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Failed to analyze files.');
-      }
-      setAnalysisResults(result.analysisResults);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'An error occurred during analysis. Please try again.';
-      setError(errorMessage);
-    }
-
-    setIsAnalyzing(false);
-  };
-
+const MultiUploadBox = () => {
+  const [files, setFiles] = useState([]);
+  const [rejectedFiles, setRejectedFiles] = useState([]);
+  const router = useRouter(); // Initialize the router
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
+    onDrop: (acceptedFiles, fileRejections) => {
+      setFiles(prevFiles => [...prevFiles, ...acceptedFiles]);
+      setRejectedFiles(prevFiles => [...prevFiles, ...fileRejections]);
+    },
     accept: {
       'image/*': [],
       'video/*': [],
@@ -85,80 +30,98 @@ export default function MultiUploadBox() {
     },
   });
 
+  const removeFile = (file) => {
+    setFiles(files.filter(f => f !== file));
+  };
+
+  const handleAnalyze = async () => {
+    if (files.length === 0) return;
+
+    const formData = new FormData();
+    files.forEach(file => {
+      formData.append('files', file);
+    });
+
+    try {
+      // Step 1: Upload files to get their URLs
+      const uploadResponse = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error('File upload failed');
+      }
+
+      const uploadResult = await uploadResponse.json();
+
+      // Step 2: Trigger analysis with the returned URLs
+      const analysisResponse = await fetch('/api/detect', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ files: uploadResult.files }),
+      });
+
+      if (!analysisResponse.ok) {
+        throw new Error('Analysis request failed');
+      }
+
+      // Step 3: Redirect to the detection page to show the results
+      router.push('/detection');
+
+    } catch (error) {
+      console.error('An error occurred:', error);
+      // Handle errors (e.g., show a notification to the user)
+    }
+  };
+
   return (
-    <div>
-      <div
-        {...getRootProps()}
-        className={`w-full p-8 border-2 border-dashed rounded-lg text-center cursor-pointer
-        ${isDragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}`}
-      >
+    <div className="w-full max-w-4xl mx-auto">
+      <div {...getRootProps()} className={`p-8 border-4 border-dashed rounded-2xl text-center cursor-pointer transition-colors duration-300 ${isDragActive ? 'border-cyan-400 bg-gray-800' : 'border-gray-600 hover:border-cyan-500'}`}>
         <input {...getInputProps()} />
-        {isDragActive ? (
-          <p className="text-blue-600">Drop the files here ...</p>
-        ) : (
-          <p className="text-gray-500">Drag & drop some files here, or click to select files</p>
+        <p className="text-2xl font-semibold text-gray-300">Drag & drop files here, or click to select</p>
+        <p className="text-gray-500 mt-2">Image, Video, or Audio</p>
+      </div>
+
+      <div className="mt-8">
+        {files.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {files.map((file, index) => {
+              const Icon = fileTypeIcons[Object.keys(fileTypeIcons).find(key => file.type.startsWith(key))] || FaFileImage;
+              return (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3 }}
+                  className="relative bg-gray-800 p-4 rounded-lg shadow-lg flex items-center space-x-4"
+                >
+                  <Icon className="text-3xl text-cyan-400" />
+                  <span className="text-white truncate flex-1">{file.name}</span>
+                  <button onClick={() => removeFile(file)} className="text-gray-400 hover:text-white">
+                    <FaTimes />
+                  </button>
+                </motion.div>
+              );
+            })}
+          </div>
         )}
       </div>
 
-      {files.length > 0 && (
-        <div className="mt-8">
-          <h3 className="text-lg font-semibold mb-4">Selected Files:</h3>
-          <ul className="space-y-4">
-            {files.map((file, index) => (
-              <li
-                key={file.id}
-                className="flex items-center justify-between p-4 bg-gray-100 dark:bg-gray-800 rounded-lg"
-              >
-                <div className="flex items-center gap-4">
-                  <span className="text-2xl"><FileIcon mediaType={file.type} /></span>
-                  <div>
-                    <p className="font-semibold">{file.file.name}</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">{(file.file.size / 1024).toFixed(2)} KB</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => removeFile(file)}
-                  className="px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600"
-                >
-                  Remove
-                </button>
-              </li>
-            ))}
-          </ul>
-
-          <div className="mt-8 text-center">
-            <button
-              onClick={handleAnalyze}
-              disabled={isAnalyzing || files.length === 0}
-              className="px-8 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400"
-            >
-              {isAnalyzing ? 'Analyzing...' : 'Analyze Files'}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {error && (
-        <div className="mt-8 p-4 bg-red-100 text-red-700 rounded-lg">
-          <p>{error}</p>
-        </div>
-      )}
-
-      {analysisResults.length > 0 && (
-        <div className="mt-8">
-          <h3 className="text-lg font-semibold mb-4">Analysis Results:</h3>
-          <ul className="space-y-4">
-            {analysisResults.map((result, index) => (
-              <li key={index} className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
-                <p className="font-semibold">{files[index].file.name}</p>
-                <p>Result: <span className={result.result === 'fake' ? 'text-red-500' : 'text-green-500'}>{result.result}</span></p>
-                <p>Fabrication Percentage: {result.fabricationPercentage}%</p>
-                <p>Explanation: {result.explanation}</p>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      <div className="mt-8 text-center">
+        <motion.button
+          onClick={handleAnalyze}
+          disabled={files.length === 0}
+          whileHover={{ scale: 1.05 }}
+          className="px-12 py-4 bg-gradient-to-r from-cyan-500 to-purple-600 text-white font-bold rounded-full shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transform transition-transform duration-300"
+        >
+          Analyze Files
+        </motion.button>
+      </div>
     </div>
   );
-}
+};
+
+export default MultiUploadBox;
