@@ -12,7 +12,8 @@ async function connectToDatabase(dbName: string) {
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const date = searchParams.get('date');
+  const startDateParam = searchParams.get('startDate');
+  const endDateParam = searchParams.get('endDate');
   const mediaType = searchParams.get('mediaType');
 
   try {
@@ -21,10 +22,10 @@ export async function GET(req: NextRequest) {
 
     const query: any = {};
 
-    if (date) {
-      const startDate = new Date(date);
-      const endDate = new Date(date);
-      endDate.setDate(endDate.getDate() + 1);
+    if (startDateParam && endDateParam) {
+      const startDate = new Date(startDateParam);
+      const endDate = new Date(endDateParam);
+      endDate.setDate(endDate.getDate() + 1); // To include the end date
       query.analyzedDate = {
         $gte: startDate,
         $lt: endDate,
