@@ -5,19 +5,24 @@ export async function POST(request: Request) {
   console.log('Received request to /api/detect');
   try {
     const formData = await request.formData();
-    const file = formData.get('file');
+    const files = formData.getAll('file');
 
-    if (!file || !(file instanceof File)) {
-      console.error('No file found in request');
-      return NextResponse.json({ error: 'No file found' }, { status: 400 });
+    if (!files || files.length === 0) {
+      console.error('No files found in request');
+      return NextResponse.json({ error: 'No files found' }, { status: 400 });
     }
 
-    console.log(`File received: ${file.name}, size: ${file.size}`);
+    const results = [];
+    for (const file of files) {
+        if (file instanceof File) {
+            console.log(`File received: ${file.name}, size: ${file.size}`);
+            const result = await analyzeVideo(file);
+            results.push(result);
+            console.log('Analysis successful for file:', file.name, result);
+        }
+    }
 
-    const result = await analyzeVideo(file);
-    console.log('Analysis successful', result);
-
-    return NextResponse.json(result);
+    return NextResponse.json(results);
   } catch (error) {
     if (error instanceof Error) {
         console.error('Error in /api/detect:', error.message);
