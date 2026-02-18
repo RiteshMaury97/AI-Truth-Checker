@@ -109,6 +109,7 @@ const AnalysisTable = ({ data }: { data: AnalysisData[] }) => {
                     <option value="all">All Types</option>
                     <option value="image">Image</option>
                     <option value="video">Video</option>
+                    <option value="audio">Audio</option>
                 </select>
                 <button
                     onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
@@ -133,6 +134,7 @@ const AnalysisTable = ({ data }: { data: AnalysisData[] }) => {
                 <thead className="bg-gray-50 dark:bg-gray-700">
                     <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">File Name</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Preview</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Type</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Fabrication %</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Risk Level</th>
@@ -143,6 +145,11 @@ const AnalysisTable = ({ data }: { data: AnalysisData[] }) => {
                     {filteredData.map((item) => (
                     <tr key={item.id}>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{item.fileName}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                            {item.mediaType === 'image' && <img src={`/uploads/${item.fileName}`} alt={item.fileName} className="w-24 h-24 object-cover" />}
+                            {item.mediaType === 'video' && <video src={`/uploads/${item.fileName}`} controls className="w-24 h-24" />}
+                            {item.mediaType === 'audio' && <audio src={`/uploads/${item.fileName}`} controls />}
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{item.mediaType}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{(item.analysisResult.fabricationPercentage * 100).toFixed(2)}%</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">{getRiskLevel(item.analysisResult.fabricationPercentage * 100)}</td>
