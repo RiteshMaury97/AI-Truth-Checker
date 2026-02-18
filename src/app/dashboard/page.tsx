@@ -1,25 +1,25 @@
 import React from 'react';
 import AnalysisTable from '@/components/AnalysisTable';
 import OverallStatistics from '@/components/OverallStatistics';
-import { AnalysisData } from '@/types/media';
+import { MediaUpload } from '@/types/media';
 import { MongoClient } from 'mongodb';
 
-async function getAnalysisData(): Promise<AnalysisData[]> {
+async function getAnalysisData(): Promise<MediaUpload[]> {
     const uri = process.env.MONGODB_URI as string;
     const client = new MongoClient(uri);
     await client.connect();
-    const db = client.db('media_links');
-    const mediaCollection = db.collection<AnalysisData>('links');
-    const data = await mediaCollection.find({}).sort({ timestamp: -1 }).toArray();
+    const db = client.db('media_db');
+    const mediaCollection = db.collection<MediaUpload>('mediaUploads');
+    const data = await mediaCollection.find({}).sort({ uploadDate: -1 }).toArray();
     await client.close();
     return data;
 }
 
-const groupDataByDate = (data: AnalysisData[]) => {
-  const groupedData: { [key: string]: AnalysisData[] } = {};
+const groupDataByDate = (data: MediaUpload[]) => {
+  const groupedData: { [key: string]: MediaUpload[] } = {};
 
   data.forEach((item) => {
-    const date = new Date(item.timestamp).toLocaleDateString();
+    const date = new Date(item.uploadDate).toLocaleDateString();
     if (!groupedData[date]) {
       groupedData[date] = [];
     }

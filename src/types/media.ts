@@ -17,8 +17,9 @@ export interface AnalysisData {
     fileName: string;
     mediaType: MediaType;
     analysisResult: AnalysisResult;
-    timestamp: string;
-    url: string;
-    fileId?: string;
+    uploadDate: string;
+    imagekitUrl: string;
+    imagekitFileId?: string;
     imageKitMediaType?: string;
+    createdAt: string;
 }

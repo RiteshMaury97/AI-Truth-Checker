@@ -1,17 +1,9 @@
 'use client';
 
 import React from 'react';
-import { AnalysisResult, MediaType } from '@/types/media';
+import { MediaUpload } from '@/types/media';
 
-interface AnalysisData {
-  id: string;
-  fileName: string;
-  mediaType: MediaType;
-  analysisResult: AnalysisResult;
-  timestamp: string;
-}
-
-const OverallStatistics = ({ data }: { data: AnalysisData[] }) => {
+const OverallStatistics = ({ data }: { data: MediaUpload[] }) => {
   const totalFiles = data.length;
   const averageFabrication = totalFiles > 0 ? (data.reduce((acc, item) => acc + item.analysisResult.fabricationPercentage, 0) / totalFiles) * 100 : 0;
   const fakeCount = data.filter(item => item.analysisResult.result === 'fake').length;

@@ -1,21 +1,12 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { AnalysisResult, MediaType } from '@/types/media';
+import { AnalysisResult, MediaType, MediaUpload } from '@/types/media';
 import Papa from 'papaparse';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
-interface AnalysisData {
-  id: string;
-  fileName: string;
-  mediaType: MediaType;
-  analysisResult: AnalysisResult;
-  timestamp: string;
-  url: string;
-}
-
-const AnalysisTable = ({ data }: { data: AnalysisData[] }) => {
+const AnalysisTable = ({ data }: { data: MediaUpload[] }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<MediaType | 'all'>('all');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc' | 'none'>('none');
@@ -60,7 +51,7 @@ const AnalysisTable = ({ data }: { data: AnalysisData[] }) => {
         Type: item.mediaType,
         FabricationPercentage: (item.analysisResult.fabricationPercentage * 100).toFixed(2) + '%',
         RiskLevel: getRiskLevel(item.analysisResult.fabricationPercentage * 100),
-        Time: new Date(item.timestamp).toLocaleString(),
+        Time: new Date(item.uploadDate).toLocaleString(),
     }));
 
     const csv = Papa.unparse(csvData);
@@ -83,7 +74,7 @@ const AnalysisTable = ({ data }: { data: AnalysisData[] }) => {
             item.mediaType,
             (item.analysisResult.fabricationPercentage * 100).toFixed(2) + '%',
             getRiskLevel(item.analysisResult.fabricationPercentage * 100),
-            new Date(item.timestamp).toLocaleString(),
+            new Date(item.uploadDate).toLocaleString(),
         ]),
     });
     doc.save('analysis_report.pdf');
@@ -144,17 +135,17 @@ const AnalysisTable = ({ data }: { data: AnalysisData[] }) => {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
                     {filteredData.map((item) => (
-                    <tr key={item.id}>
+                    <tr key={item.imagekitFileId}>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{item.fileName}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                            {item.mediaType === 'image' && <img src={item.url} alt={item.fileName} className="w-24 h-24 object-cover" />}
-                            {item.mediaType === 'video' && <video src={item.url} controls className="w-24 h-24" />}
-                            {item.mediaType === 'audio' && <audio src={item.url} controls />}
+                            {item.mediaType === 'image' && <img src={item.imagekitUrl} alt={item.fileName} className="w-24 h-24 object-cover" />}
+                            {item.mediaType === 'video' && <video src={item.imagekitUrl} controls className="w-24 h-24" />}
+                            {item.mediaType === 'audio' && <audio src={item.imagekitUrl} controls />}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{item.mediaType}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{(item.analysisResult.fabricationPercentage * 100).toFixed(2)}%</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">{getRiskLevel(item.analysisResult.fabricationPercentage * 100)}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{new Date(item.timestamp).toLocaleString()}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{new Date(item.uploadDate).toLocaleString()}</td>
                     </tr>
                     ))}
                 </tbody>

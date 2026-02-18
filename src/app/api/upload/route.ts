@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { MongoClient } from 'mongodb';
 import { uploadToImageKit } from '@/services/imagekit';
 import { analyzeMedia } from '@/services/mediaAnalysis';
-import { AnalysisData } from '@/types/media';
+import { MediaUpload } from '@/types/media';
 
 const uri = process.env.MONGODB_URI as string;
 const client = new MongoClient(uri);
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
         continue;
       }
 
-      const { url, fileId, fileType } = imageKitResponse;
+      const { url, fileId } = imageKitResponse;
 
       const mediaType = file.type.startsWith('image')
         ? 'image'
@@ -44,20 +44,19 @@ export async function POST(req: NextRequest) {
 
       const analysisResult = await analyzeMedia(url, mediaType);
 
-      const mediaCollection = await connectToDatabase('media_links', 'links');
+      const mediaCollection = await connectToDatabase('media_db', 'mediaUploads');
 
-      const analysisData: AnalysisData = {
-        id: new Date().toISOString(),
+      const mediaUpload: MediaUpload = {
         fileName: file.name,
         mediaType,
+        imagekitUrl: url,
+        imagekitFileId: fileId,
         analysisResult,
-        timestamp: new Date().toISOString(),
-        url: url,
-        fileId: fileId,
-        imageKitMediaType: fileType,
+        uploadDate: new Date(),
+        createdAt: new Date(),
       };
 
-      await mediaCollection.insertOne(analysisData);
+      await mediaCollection.insertOne(mediaUpload);
       analysisResults.push(analysisResult);
     } catch (error) {
       console.error(`Error processing ${file.name}:`, error);
