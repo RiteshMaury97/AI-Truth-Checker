@@ -1,72 +1,28 @@
-
-# Project Blueprint
+# Blueprint
 
 ## Overview
 
-A Next.js application for detecting deepfakes in images and videos. The application provides a simple interface for users to upload a file and view the analysis results.
+This application is a media analysis tool that allows users to upload images, videos, and audio files for analysis. It provides a dashboard to view the analysis results.
 
-## Design and Features
+## Features
 
-### Styling
+*   **File Upload:** Users can upload media files through a drag-and-drop interface.
+*   **Media Analysis:** The application analyzes the uploaded media files to determine if they are real or fake.
+*   **Dashboard:** A dashboard displays the analysis results, including overall statistics and a table of all analyzed files.
+*   **Theme Switcher:** Users can switch between light and dark modes.
 
-- **Framework:** Tailwind CSS
-- **Global Styles:** `src/styles/globals.css`
-- **PostCSS:** `postcss.config.js`
-- **Tailwind Config:** `tailwind.config.js`
+## Project Structure
 
-### Features
+*   **/app:** Contains the application's routes and pages.
+*   **/components:** Contains reusable React components.
+*   **/lib:** Contains utility functions, including the MongoDB client.
+*   **/public:** Contains static assets, including uploaded media files.
+*   **/services:** Contains the media analysis service.
+*   **/types:** Contains TypeScript type definitions.
 
-- **Dark/Light Mode:** The application now supports a dark and light mode theme, with a theme switcher in the navigation bar.
-- **Sample Files:** A section on the homepage provides sample files for users to try the analysis feature.
-- **FAQ:** A frequently asked questions section has been added to the homepage to provide users with more information about the application.
-- **API Integration:** The frontend is now integrated with the back-end API for media analysis.
+## Current Plan
 
-### Components
-
-- **Navbar (`src/components/Navbar.tsx`):** The main navigation bar for the application.
-- **Footer (`src/components/Footer.tsx`):** The footer for the application.
-- **MultiUploadBox (`src/components/MultiUploadBox.tsx`):** A component for uploading multiple files with drag-and-drop support, file previews, and removal functionality.
-- **Member (`src/components/Member.tsx`):** A component for displaying team members.
-- **InfoCard (`src/components/InfoCard.tsx`):** A component for displaying information in a card format.
-- **Hero (`src/components/Hero.tsx`):** The hero section for the landing page.
-- **ThemeProvider (`src/components/ThemeProvider.tsx`):** A component for managing the application's theme.
-- **ThemeSwitcher (`src/components/ThemeSwitcher.tsx`):** A component for switching between dark and light mode.
-- **SampleFiles (`src/components/SampleFiles.tsx`):** A component for displaying sample files.
-- **FAQ (`src/components/FAQ.tsx`):** A component for displaying frequently asked questions.
-- **ScannerAnimation (`src/components/ScannerAnimation.tsx`):** A component for displaying a scanning animation during analysis.
-
-### Pages
-
-- **Homepage (`src/app/page.tsx`):** The main landing page of the application.
-- **Detection (`src/app/detection/page.tsx`):** The page for uploading files and viewing analysis results.
-- **Report (`src/app/report/page.tsx`):** The page for viewing detailed analysis reports.
-- **About (`src/app/about/page.tsx`):** The page for information about the application and its creators.
-
-### API Routes
-
-- **`/api/detect` (`src/app/api/detect/route.ts`):** The API endpoint for analyzing uploaded files.
-
-### Services
-
-- **`services/aiService.ts`:** A service for handling API requests to the back-end for media analysis.
-
-### TypeScript Types
-
-- **`types/media.ts`:** Contains reusable TypeScript interfaces for the application.
-  - `MediaFile`: Represents a file uploaded by the user.
-  - `AnalysisResult`: Represents the result of a deepfake analysis.
-  - `ReportRecord`: A composite type that links a `MediaFile` to its `AnalysisResult`.
-
-## Current Task: Integrate AI Analysis Service
-
-### Plan
-
-1.  **Integrate the `aiService` with the `HomePage` component.**
-    -   [x] Update the `handleDetection` function to call the `analyzeMedia` service for each uploaded file.
-    -   [x] Use `Promise.all` to handle multiple API requests concurrently.
-    -   [x] Update the component's state with the analysis results returned from the API.
-    -   [x] Add error handling to gracefully manage API errors.
-2.  **Update the project blueprint.**
-    -   [x] Update the `blueprint.md` file to reflect the integration of the AI analysis service.
-3.  **Lint the project.**
-    -   [x] Run `npm run lint` to check for any new warnings or errors.
+*   **Integrate MongoDB:** Add MongoDB to store and manage uploaded media files.
+*   **Create API Route:** Create a new API route to handle file uploads and save metadata to MongoDB.
+*   **Update Frontend:** Modify the frontend to send uploaded files to the new API route.
+*   **Update Dashboard:** Update the dashboard to fetch and display data from MongoDB.
