@@ -18,7 +18,7 @@ A Next.js application for detecting deepfakes in images and videos. The applicat
 
 - **Navbar (`src/components/Navbar.tsx`):** The main navigation bar for the application.
 - **Footer (`src/components/Footer.tsx`):** The footer for the application.
-- **FileUpload (`src/components/FileUpload.tsx`):** A component for uploading files and displaying analysis results.
+- **MultiUploadBox (`src/components/MultiUploadBox.tsx`):** A component for uploading multiple files with drag-and-drop support, file previews, and removal functionality.
 - **Member (`src/components/Member.tsx`):** A component for displaying team members.
 - **InfoCard (`src/components/InfoCard.tsx`):** A component for displaying information in a card format.
 - **Hero (`src/components/Hero.tsx`):** The hero section for the landing page.
@@ -34,17 +34,17 @@ A Next.js application for detecting deepfakes in images and videos. The applicat
 
 - **`/api/detect` (`src/app/api/detect/route.ts`):** The API endpoint for analyzing uploaded files.
 
-## Current Task: Refine Landing Page
+## Current Task: Multi-File Upload System
 
 ### Plan
 
-1.  **Create the `Hero` component.**
-    -   [x] Create the `Hero.tsx` file in the `src/components` directory.
-    -   [x] Add a title, subtitle, and buttons for "Upload Media" and "Learn More."
-    -   [x] Apply a dark AI theme with a gradient background.
-2.  **Update the home page.**
-    -   [x] Replace the content of `src/app/page.tsx` with the new `Hero` component.
-3.  **Refine the `Hero` component.**
-    -   [x] Make the hero section full-screen to remove whitespace.
-    -   [x] Remove the container from the main layout to allow the hero section to be full-width.
-    -   [x] Verify that all other pages have their own container.
+1.  **Create the `MultiUploadBox` component.**
+    -   [x] Create the `MultiUploadBox.tsx` file in the `src/components` directory.
+    -   [x] Implement drag-and-drop functionality for file uploads.
+    -   [x] Support multiple image, video, and audio file types.
+    -   [x] Display a preview list of uploaded files with file-type icons.
+    -   [x] Add a "Remove" button to remove files from the list.
+2.  **Update the detection page.**
+    -   [x] Replace the existing `FileUpload` component with the new `MultiUploadBox` component.
+3.  **Remove the old `FileUpload` component.**
+    -   [x] Delete the `src/components/FileUpload.tsx` file.
