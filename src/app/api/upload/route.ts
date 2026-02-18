@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { MongoClient } from 'mongodb';
+import { MongoClient, ObjectId } from 'mongodb';
 import { uploadToImageKit } from '@/services/imagekit';
 import { analyzeMediaWithAI } from '@/services/aiAnalysis';
-import { MediaUpload } from '@/types/media';
+import { MediaUpload, AnalysisReport } from '@/types/media';
 
 const uri = process.env.MONGODB_URI as string;
 const client = new MongoClient(uri);
 
-async function connectToDatabase(dbName: string, collectionName: string) {
+async function connectToDatabase(dbName: string) {
   await client.connect();
-  return client.db(dbName).collection(collectionName);
+  return client.db(dbName);
 }
 
 export async function POST(req: NextRequest) {
@@ -42,22 +42,45 @@ export async function POST(req: NextRequest) {
         ? 'video'
         : 'audio';
 
-      const analysisResult = await analyzeMediaWithAI(url, mediaType);
-
-      const mediaCollection = await connectToDatabase('media_db', 'mediaUploads');
+      const db = await connectToDatabase('media_db');
+      const mediaCollection = db.collection('mediaUploads');
+      const analysisReportsCollection = db.collection('analysisReports');
 
       const mediaUpload: MediaUpload = {
         fileName: file.name,
         mediaType,
         imagekitUrl: url,
         imagekitFileId: fileId,
-        analysisResult,
         uploadDate: new Date(),
         createdAt: new Date(),
       };
 
-      await mediaCollection.insertOne(mediaUpload);
-      analysisResults.push(analysisResult);
+      const insertedMedia = await mediaCollection.insertOne(mediaUpload);
+
+      const analysisResultFromAI = await analyzeMediaWithAI(url, mediaType);
+
+      const analysisReport: AnalysisReport = {
+        mediaUploadId: insertedMedia.insertedId,
+        fileName: file.name,
+        mediaType,
+        imagekitUrl: url,
+        fabricationPercentage: analysisResultFromAI.fabricationPercentage,
+        authenticityPercentage: 1 - analysisResultFromAI.fabricationPercentage,
+        resultStatus: analysisResultFromAI.result,
+        explanation: analysisResultFromAI.explanation,
+        scores: analysisResultFromAI.scores,
+        analyzedDate: new Date(),
+        createdAt: new Date(),
+      };
+
+      const insertedAnalysisReport = await analysisReportsCollection.insertOne(analysisReport);
+
+      await mediaCollection.updateOne(
+        { _id: insertedMedia.insertedId },
+        { $set: { analysisReportId: insertedAnalysisReport.insertedId } }
+      );
+
+      analysisResults.push(analysisReport);
     } catch (error) {
       console.error(`Error processing ${file.name}:`, error);
       continue;

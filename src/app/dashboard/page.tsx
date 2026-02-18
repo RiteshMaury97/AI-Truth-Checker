@@ -1,37 +1,33 @@
 import React from 'react';
 import AnalysisTable from '@/components/AnalysisTable';
-import OverallStatistics from '@/components/OverallStatistics';
-import { MediaUpload } from '@/types/media';
-import { MongoClient } from 'mongodb';
+import { MediaUpload, AnalysisReport, EnrichedMediaUpload } from '@/types/media';
+import { MongoClient, ObjectId } from 'mongodb';
 
-async function getAnalysisData(): Promise<MediaUpload[]> {
+async function getAnalysisData(): Promise<EnrichedMediaUpload[]> {
     const uri = process.env.MONGODB_URI as string;
     const client = new MongoClient(uri);
     await client.connect();
     const db = client.db('media_db');
     const mediaCollection = db.collection<MediaUpload>('mediaUploads');
-    const data = await mediaCollection.find({}).sort({ uploadDate: -1 }).toArray();
+    const analysisReportsCollection = db.collection<AnalysisReport>('analysisReports');
+
+    const mediaUploads = await mediaCollection.find({}).sort({ uploadDate: -1 }).toArray();
+    const analysisReports = await analysisReportsCollection.find({}).toArray();
+
+    const enrichedMediaUploads = mediaUploads.map(mediaUpload => {
+        const analysisReport = analysisReports.find(report => report.mediaUploadId.equals(mediaUpload._id as ObjectId));
+        return {
+            ...mediaUpload,
+            analysisResult: analysisReport as AnalysisReport,
+        };
+    });
+
     await client.close();
-    return data;
+    return enrichedMediaUploads;
 }
-
-const groupDataByDate = (data: MediaUpload[]) => {
-  const groupedData: { [key: string]: MediaUpload[] } = {};
-
-  data.forEach((item) => {
-    const date = new Date(item.uploadDate).toLocaleDateString();
-    if (!groupedData[date]) {
-      groupedData[date] = [];
-    }
-    groupedData[date].push(item);
-  });
-
-  return groupedData;
-};
 
 const DashboardPage = async () => {
   const analysisData = await getAnalysisData();
-  const groupedData = groupDataByDate(analysisData);
 
   return (
     <div className="bg-gray-50 dark:bg-gray-900 min-h-screen">
@@ -40,15 +36,7 @@ const DashboardPage = async () => {
           <h1 className="text-5xl font-extrabold text-gray-900 dark:text-white mb-4">Analysis Dashboard</h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">Browse, search, and filter all your analysis records.</p>
         </div>
-        <OverallStatistics data={analysisData} />
-        {
-          Object.entries(groupedData).map(([date, data]) => (
-            <div key={date} className="mb-12">
-              <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">{date}</h2>
-              <AnalysisTable data={data} />
-            </div>
-          ))
-        }
+        <AnalysisTable data={analysisData} />
       </div>
     </div>
   );

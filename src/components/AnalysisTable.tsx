@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { AnalysisResult, MediaType, MediaUpload } from '@/types/media';
+import { AnalysisReport, MediaType, EnrichedMediaUpload } from '@/types/media';
 import Papa from 'papaparse';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
@@ -9,15 +9,15 @@ import Modal from 'react-modal';
 
 Modal.setAppElement('#__next');
 
-const AnalysisTable = ({ data }: { data: MediaUpload[] }) => {
+const AnalysisTable = ({ data }: { data: EnrichedMediaUpload[] }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<MediaType | 'all'>('all');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc' | 'none'>('none');
   const [modalIsOpen, setModalIsOpen] = useState(false);
-  const [selectedAnalysis, setSelectedAnalysis] = useState<AnalysisResult | null>(null);
+  const [selectedAnalysis, setSelectedAnalysis] = useState<AnalysisReport | null>(null);
 
   const filteredData = useMemo(() => {
-    let filtered = data;
+    let filtered = data.filter(item => item.analysisResult);
 
     if (searchTerm) {
       filtered = filtered.filter((item) =>
@@ -85,7 +85,7 @@ const AnalysisTable = ({ data }: { data: MediaUpload[] }) => {
     doc.save('analysis_report.pdf');
   };
 
-  const openModal = (analysis: AnalysisResult) => {
+  const openModal = (analysis: AnalysisReport) => {
     setSelectedAnalysis(analysis);
     setModalIsOpen(true);
   };
