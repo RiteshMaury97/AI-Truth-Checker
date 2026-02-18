@@ -2,7 +2,6 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import connectToDatabase from '@/lib/mongodb';
-import Report from '@/models/Report';
 
 // Initialize the Google Generative AI client
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
@@ -30,7 +29,6 @@ async function analyzeWithGemini(fileUrl: string) {
     const result = await model.generateContent([prompt, imagePart]);
     const analysisResult = result.response.text();
     
-    // Basic parsing of the result, assuming a consistent format from Gemini
     const confidenceMatch = analysisResult.match(/Confidence Score: (\d+)/);
     const explanationMatch = analysisResult.match(/Explanation: (.*)/);
 
@@ -46,7 +44,6 @@ async function analyzeWithGemini(fileUrl: string) {
 }
 
 export async function POST(req: Request) {
-  await connectToDatabase();
   const { files } = await req.json();
 
   if (!files || !Array.isArray(files)) {
@@ -54,21 +51,26 @@ export async function POST(req: Request) {
   }
 
   try {
-    const reports = [];
+    const { db } = await connectToDatabase();
+    const reportsToInsert = [];
+
     for (const file of files) {
       const analysis = await analyzeWithGemini(file.url);
 
-      const report = new Report({
+      const reportDocument = {
         ...file,
         ...analysis,
         status: 'completed',
-      });
-
-      await report.save();
-      reports.push(report);
+        createdAt: new Date(),
+      };
+      reportsToInsert.push(reportDocument);
     }
 
-    return NextResponse.json({ reports }, { status: 201 });
+    if (reportsToInsert.length > 0) {
+      await db.collection('reports').insertMany(reportsToInsert);
+    }
+
+    return NextResponse.json({ reports: reportsToInsert }, { status: 201 });
   } catch (error) {
     console.error('Error processing analysis request:', error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
