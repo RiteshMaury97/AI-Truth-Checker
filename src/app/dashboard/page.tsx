@@ -1,47 +1,22 @@
-'use client';
-
 import React from 'react';
 import AnalysisTable from '@/components/AnalysisTable';
 import OverallStatistics from '@/components/OverallStatistics';
 import { AnalysisData } from '@/types/media';
+import { MongoClient } from 'mongodb';
 
-const DashboardPage = () => {
-  // In a real application, you would fetch this data from an API.
-  const analysisData: AnalysisData[] = [
-    {
-      id: '1',
-      fileName: 'video1.mp4',
-      mediaType: 'video',
-      analysisResult: {
-        fabricationPercentage: 0.85,
-        result: 'fake',
-        explanation: 'This is a placeholder explanation.',
-      },
-      timestamp: new Date().toISOString(),
-    },
-    {
-      id: '2',
-      fileName: 'image1.jpg',
-      mediaType: 'image',
-      analysisResult: {
-        fabricationPercentage: 0.25,
-        result: 'real',
-        explanation: 'This is a placeholder explanation.',
-      },
-      timestamp: new Date().toISOString(),
-    },
-    {
-        id: '3',
-        fileName: 'video2.mp4',
-        mediaType: 'video',
-        analysisResult: {
-          fabricationPercentage: 0.65,
-          result: 'fake',
-          explanation: 'This is a placeholder explanation.',
-        },
-        timestamp: new Date().toISOString(),
-      },
-  ];
+async function getAnalysisData(): Promise<AnalysisData[]> {
+    const uri = process.env.MONGODB_URI as string;
+    const client = new MongoClient(uri);
+    await client.connect();
+    const db = client.db('test');
+    const mediaCollection = db.collection<AnalysisData>('media');
+    const data = await mediaCollection.find({}).toArray();
+    await client.close();
+    return data;
+}
+
+const DashboardPage = async () => {
+  const analysisData = await getAnalysisData();
 
   return (
     <div className="bg-gray-50 dark:bg-gray-900 min-h-screen">

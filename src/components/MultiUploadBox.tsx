@@ -3,7 +3,6 @@
 import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { MediaFile, MediaType, AnalysisResult } from '@/types/media';
-import { analyzeMedia } from '@/services/aiService';
 
 const getMediaType = (file: File): MediaType => {
   if (file.type.startsWith('image/')) return 'image';
@@ -33,15 +32,15 @@ export default function MultiUploadBox() {
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const newMediaFiles: MediaFile[] = acceptedFiles.map(file => ({
-      fileName: file.name,
-      mediaType: getMediaType(file),
+      id: new Date().toISOString() + file.name,
       file,
+      type: getMediaType(file),
     }));
     setFiles(prevFiles => [...prevFiles, ...newMediaFiles]);
   }, []);
 
   const removeFile = (fileToRemove: MediaFile) => {
-    setFiles(prevFiles => prevFiles.filter(file => file !== fileToRemove));
+    setFiles(prevFiles => prevFiles.filter(file => file.id !== fileToRemove.id));
   };
 
   const handleAnalyze = async () => {
@@ -51,16 +50,29 @@ export default function MultiUploadBox() {
     setError(null);
     setAnalysisResults([]);
 
-    try {
-      const results = await Promise.all(
-        files.map(file => analyzeMedia(file))
-      );
-      setAnalysisResults(results);
-    } catch (err) {
-      setError('An error occurred during analysis. Please try again.');
-    } finally {
-      setIsAnalyzing(false);
+    const results: AnalysisResult[] = [];
+
+    for (const file of files) {
+        const formData = new FormData();
+        formData.append('file', file.file);
+        try {
+            const response = await fetch('/api/upload', {
+                method: 'POST',
+                body: formData,
+            });
+            if (!response.ok) {
+                throw new Error('Failed to analyze file');
+            }
+            const result = await response.json();
+            results.push(result.analysisResult);
+        } catch (err) {
+            setError('An error occurred during analysis. Please try again.');
+            break;
+        } 
     }
+
+    setAnalysisResults(results);
+    setIsAnalyzing(false);
   };
 
 
@@ -94,13 +106,13 @@ export default function MultiUploadBox() {
           <ul className="space-y-4">
             {files.map((file, index) => (
               <li
-                key={index}
+                key={file.id}
                 className="flex items-center justify-between p-4 bg-gray-100 dark:bg-gray-800 rounded-lg"
               >
                 <div className="flex items-center gap-4">
-                  <span className="text-2xl"><FileIcon mediaType={file.mediaType} /></span>
+                  <span className="text-2xl"><FileIcon mediaType={file.type} /></span>
                   <div>
-                    <p className="font-semibold">{file.fileName}</p>
+                    <p className="font-semibold">{file.file.name}</p>
                     <p className="text-sm text-gray-500 dark:text-gray-400">{(file.file.size / 1024).toFixed(2)} KB</p>
                   </div>
                 </div>
@@ -138,7 +150,7 @@ export default function MultiUploadBox() {
           <ul className="space-y-4">
             {analysisResults.map((result, index) => (
               <li key={index} className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
-                <p className="font-semibold">{files[index].fileName}</p>
+                <p className="font-semibold">{files[index].file.name}</p>
                 <p>Result: <span className={result.result === 'fake' ? 'text-red-500' : 'text-green-500'}>{result.result}</span></p>
                 <p>Fabrication Percentage: {result.fabricationPercentage}%</p>
                 <p>Explanation: {result.explanation}</p>
