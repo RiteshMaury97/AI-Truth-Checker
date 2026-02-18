@@ -11,3 +11,11 @@ export interface AnalysisResult {
   result: 'real' | 'fake';
   explanation: string;
 }
+
+export interface AnalysisData {
+    id: string;
+    fileName: string;
+    mediaType: MediaType;
+    analysisResult: AnalysisResult;
+    timestamp: string;
+}

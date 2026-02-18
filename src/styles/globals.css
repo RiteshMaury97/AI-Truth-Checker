@@ -48,4 +48,20 @@
         transform: scale(0.9);
         transition: all 500ms ease-in-out;
     }
+
+    @keyframes scan {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(calc(100vw + 100%)); }
+    }
+    .animate-scan {
+        animation: scan 4s linear infinite;
+    }
+
+    @keyframes scan-reverse {
+        0% { transform: translateX(calc(100vw + 100%)); }
+        100% { transform: translateX(-100%); }
+    }
+    .animate-scan-reverse {
+        animation: scan-reverse 4s linear infinite 1s;
+    }
 }

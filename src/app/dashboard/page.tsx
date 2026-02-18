@@ -3,10 +3,11 @@
 import React from 'react';
 import AnalysisTable from '@/components/AnalysisTable';
 import OverallStatistics from '@/components/OverallStatistics';
+import { AnalysisData } from '@/types/media';
 
 const DashboardPage = () => {
   // In a real application, you would fetch this data from an API.
-  const analysisData = [
+  const analysisData: AnalysisData[] = [
     {
       id: '1',
       fileName: 'video1.mp4',

@@ -6,22 +6,26 @@ import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import Hero from '@/components/Hero';
 import ResultCard from '@/components/ResultCard';
 import ScannerAnimation from '@/components/ScannerAnimation';
-import CountingNumber from '@/components/CountingNumber';
+import SampleFiles from '@/components/SampleFiles';
+import FAQ from '@/components/FAQ';
 import { MediaFile, AnalysisResult } from '@/types/media';
+import { analyzeMedia } from '@/services/aiService';
 
 const HomePage: React.FC = () => {
   const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
   const [analysisResults, setAnalysisResults] = useState<AnalysisResult[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    const newMediaFiles = acceptedFiles.map((file) => ({
+    const newMediaFiles: MediaFile[] = acceptedFiles.map((file) => ({
       file,
       type: file.type.startsWith('image/') ? 'image' : 'video',
       id: `${file.name}-${file.lastModified}`,
     }));
     setMediaFiles(newMediaFiles);
     setAnalysisResults([]);
+    setError(null);
   }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
@@ -30,15 +34,18 @@ const HomePage: React.FC = () => {
     if (mediaFiles.length === 0) return;
 
     setLoading(true);
-    // Simulate analysis delay
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    setError(null);
 
-    const results = mediaFiles.map(() => ({
-      fabricationPercentage: Math.random(),
-      result: Math.random() > 0.5 ? 'fake' : 'real',
-      explanation: 'This is a simulated analysis result.',
-    }));
-    setAnalysisResults(results);
+    try {
+      const results = await Promise.all(
+        mediaFiles.map(mediaFile => analyzeMedia(mediaFile))
+      );
+      setAnalysisResults(results);
+    } catch (error) {
+      setError('An error occurred during analysis. Please try again.');
+      console.error(error);
+    }
+
     setLoading(false);
   };
 
@@ -65,6 +72,8 @@ const HomePage: React.FC = () => {
 
         {loading && <ScannerAnimation />}
 
+        {error && <p className="text-red-500 mt-4">{error}</p>}
+
         <TransitionGroup component={null}>
           {analysisResults.length > 0 && !loading && (
             <div className="mt-8">
@@ -83,6 +92,9 @@ const HomePage: React.FC = () => {
             </div>
           )}
         </TransitionGroup>
+
+        <SampleFiles />
+        <FAQ />
       </div>
     </div>
   );
