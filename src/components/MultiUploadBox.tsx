@@ -2,7 +2,8 @@
 
 import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { MediaFile, MediaType } from '@/types/media';
+import { MediaFile, MediaType, AnalysisResult } from '@/types/media';
+import { analyzeMedia } from '@/services/aiService';
 
 const getMediaType = (file: File): MediaType => {
   if (file.type.startsWith('image/')) return 'image';
@@ -26,6 +27,9 @@ const FileIcon = ({ mediaType }: { mediaType: MediaType }) => {
 
 export default function MultiUploadBox() {
   const [files, setFiles] = useState<MediaFile[]>([]);
+  const [analysisResults, setAnalysisResults] = useState<AnalysisResult[]>([]);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const newMediaFiles: MediaFile[] = acceptedFiles.map(file => ({
@@ -39,6 +43,26 @@ export default function MultiUploadBox() {
   const removeFile = (fileToRemove: MediaFile) => {
     setFiles(prevFiles => prevFiles.filter(file => file !== fileToRemove));
   };
+
+  const handleAnalyze = async () => {
+    if (files.length === 0) return;
+
+    setIsAnalyzing(true);
+    setError(null);
+    setAnalysisResults([]);
+
+    try {
+      const results = await Promise.all(
+        files.map(file => analyzeMedia(file))
+      );
+      setAnalysisResults(results);
+    } catch (err) {
+      setError('An error occurred during analysis. Please try again.');
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -86,6 +110,38 @@ export default function MultiUploadBox() {
                 >
                   Remove
                 </button>
+              </li>
+            ))}
+          </ul>
+
+          <div className="mt-8 text-center">
+            <button
+              onClick={handleAnalyze}
+              disabled={isAnalyzing || files.length === 0}
+              className="px-8 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400"
+            >
+              {isAnalyzing ? 'Analyzing...' : 'Analyze Files'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {error && (
+        <div className="mt-8 p-4 bg-red-100 text-red-700 rounded-lg">
+          <p>{error}</p>
+        </div>
+      )}
+
+      {analysisResults.length > 0 && (
+        <div className="mt-8">
+          <h3 className="text-lg font-semibold mb-4">Analysis Results:</h3>
+          <ul className="space-y-4">
+            {analysisResults.map((result, index) => (
+              <li key={index} className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                <p className="font-semibold">{files[index].fileName}</p>
+                <p>Result: <span className={result.result === 'fake' ? 'text-red-500' : 'text-green-500'}>{result.result}</span></p>
+                <p>Fabrication Percentage: {result.fabricationPercentage}%</p>
+                <p>Explanation: {result.explanation}</p>
               </li>
             ))}
           </ul>

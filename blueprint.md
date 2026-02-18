@@ -34,6 +34,10 @@ A Next.js application for detecting deepfakes in images and videos. The applicat
 
 - **`/api/detect` (`src/app/api/detect/route.ts`):** The API endpoint for analyzing uploaded files.
 
+### Services
+
+- **`services/aiService.ts`:** A service for handling API requests to the back-end for media analysis.
+
 ### TypeScript Types
 
 - **`types/media.ts`:** Contains reusable TypeScript interfaces for the application.
@@ -41,11 +45,10 @@ A Next.js application for detecting deepfakes in images and videos. The applicat
   - `AnalysisResult`: Represents the result of a deepfake analysis.
   - `ReportRecord`: A composite type that links a `MediaFile` to its `AnalysisResult`.
 
-## Current Task: TypeScript Types
+## Current Task: AI Analysis Service
 
 ### Plan
 
-1.  **Create reusable interfaces.**
-    -   [x] Create the `types/media.ts` file.
-    -   [x] Define the `MediaFile`, `AnalysisResult`, and `ReportRecord` interfaces.
-
+1.  **Create the AI analysis service.**
+    -   [x] Create the `services/aiService.ts` file.
+    -   [x] Implement the `analyzeMedia` function to send media files to the `/api/detect` endpoint.
