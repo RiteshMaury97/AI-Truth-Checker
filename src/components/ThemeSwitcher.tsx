@@ -17,12 +17,20 @@ const ThemeSwitcher = () => {
 
   return (
     <button
-      className={`w-12 h-6 rounded-full bg-white flex items-center transition duration-300 focus:outline-none shadow`}
+      className={`
+        w-12 h-6 rounded-full flex items-center p-0.5
+        transition-colors duration-300
+        ${theme === 'dark' ? 'bg-gray-600' : 'bg-gray-300'}
+      `}
       onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
     >
       <div
-        className={`w-7 h-7 relative rounded-full transition duration-500 transform bg-gray-600 -translate-x-1`}
-      ></div>
+        className={`
+          w-5 h-5 bg-white rounded-full
+          transform transition-transform duration-300
+          ${theme === 'dark' ? 'translate-x-6' : 'translate-x-0'}
+        `}
+      />
     </button>
   );
 };
