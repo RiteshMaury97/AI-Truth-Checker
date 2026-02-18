@@ -7,7 +7,9 @@ const client = new MongoClient(uri);
 
 async function connectToDatabase(dbName: string) {
   await client.connect();
-  return client.db(dbName);
+  const db = client.db(dbName);
+  await db.collection('analysisReports').createIndex({ analyzedDate: -1 });
+  return db;
 }
 
 export async function GET(req: NextRequest) {
@@ -15,6 +17,9 @@ export async function GET(req: NextRequest) {
   const startDateParam = searchParams.get('startDate');
   const endDateParam = searchParams.get('endDate');
   const mediaType = searchParams.get('mediaType');
+  const page = parseInt(searchParams.get('page') || '1', 10);
+  const limit = parseInt(searchParams.get('limit') || '10', 10);
+  const skip = (page - 1) * limit;
 
   try {
     const db = await connectToDatabase('media_db');
@@ -25,7 +30,7 @@ export async function GET(req: NextRequest) {
     if (startDateParam && endDateParam) {
       const startDate = new Date(startDateParam);
       const endDate = new Date(endDateParam);
-      endDate.setDate(endDate.getDate() + 1); // To include the end date
+      endDate.setDate(endDate.getDate() + 1);
       query.analyzedDate = {
         $gte: startDate,
         $lt: endDate,
@@ -35,8 +40,8 @@ export async function GET(req: NextRequest) {
     if (mediaType) {
       query.mediaType = mediaType;
     }
-    
-    const reports = await analysisReportsCollection.aggregate([
+
+    const reportsPromise = analysisReportsCollection.aggregate([
         { $match: query },
         {
             $lookup: {
@@ -83,15 +88,34 @@ export async function GET(req: NextRequest) {
         },
         {
             $sort: { _id: -1 }
+        },
+        {
+            $skip: skip
+        },
+        {
+            $limit: limit
         }
     ]).toArray();
+
+    const totalReportsPromise = analysisReportsCollection.countDocuments(query);
+
+    const [reports, totalReports] = await Promise.all([reportsPromise, totalReportsPromise]);
+
+    const totalPages = Math.ceil(totalReports / limit);
 
     const groupedByDate = reports.reduce((acc, group) => {
         acc[group._id] = group.reports;
         return acc;
     }, {} as Record<string, any[]>);
 
-    return NextResponse.json(groupedByDate);
+    return NextResponse.json({
+      data: groupedByDate,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        limit
+      }
+    });
   } catch (error) {
     console.error('Error fetching analysis reports:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
