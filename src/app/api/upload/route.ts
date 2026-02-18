@@ -23,24 +23,33 @@ export async function POST(req: NextRequest) {
   const bytes = await file.arrayBuffer();
   const buffer = Buffer.from(bytes);
 
-  const imageUrl = await uploadToImageKit(buffer, file.name);
+  try {
+    const imageUrl = await uploadToImageKit(buffer, file.name);
 
-  const mediaType = file.type.startsWith('image') ? 'image' : file.type.startsWith('video') ? 'video' : 'audio';
+    if (!imageUrl) {
+      return NextResponse.json({ error: 'Failed to upload to ImageKit' }, { status: 500 });
+    }
 
-  const analysisResult = await analyzeMedia(imageUrl, mediaType);
+    const mediaType = file.type.startsWith('image') ? 'image' : file.type.startsWith('video') ? 'video' : 'audio';
 
-  const mediaCollection = await connectToDatabase('media_links', 'links');
+    const analysisResult = await analyzeMedia(imageUrl, mediaType);
 
-  const analysisData: AnalysisData = {
-    id: new Date().toISOString(),
-    fileName: file.name,
-    mediaType,
-    analysisResult,
-    timestamp: new Date().toISOString(),
-    url: imageUrl,
-  };
+    const mediaCollection = await connectToDatabase('media_links', 'links');
 
-  await mediaCollection.insertOne(analysisData);
+    const analysisData: AnalysisData = {
+      id: new Date().toISOString(),
+      fileName: file.name,
+      mediaType,
+      analysisResult,
+      timestamp: new Date().toISOString(),
+      url: imageUrl,
+    };
 
-  return NextResponse.json(analysisData);
+    await mediaCollection.insertOne(analysisData);
+
+    return NextResponse.json(analysisData);
+  } catch (error) {
+    console.error('Error uploading to ImageKit:', error);
+    return NextResponse.json({ error: 'Error uploading to ImageKit' }, { status: 500 });
+  }
 }

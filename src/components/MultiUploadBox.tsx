@@ -60,14 +60,17 @@ export default function MultiUploadBox() {
                 method: 'POST',
                 body: formData,
             });
-            if (!response.ok) {
-                throw new Error('Failed to analyze file');
-            }
+
             const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || `Failed to analyze ${file.file.name}.`);
+            }
             results.push(result.analysisResult);
         } catch (err) {
-            setError('An error occurred during analysis. Please try again.');
-            break;
+            const errorMessage = err instanceof Error ? err.message : 'An error occurred during analysis. Please try again.';
+            setError(errorMessage);
+            break; // Stop on the first error
         } 
     }
 
