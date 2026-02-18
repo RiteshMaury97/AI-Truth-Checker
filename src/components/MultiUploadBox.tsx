@@ -50,31 +50,28 @@ export default function MultiUploadBox() {
     setError(null);
     setAnalysisResults([]);
 
-    const results: AnalysisResult[] = [];
+    const formData = new FormData();
+    files.forEach(file => {
+      formData.append('files', file.file);
+    });
 
-    for (const file of files) {
-        const formData = new FormData();
-        formData.append('file', file.file);
-        try {
-            const response = await fetch('/api/upload', {
-                method: 'POST',
-                body: formData,
-            });
+    try {
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
 
-            const result = await response.json();
+      const result = await response.json();
 
-            if (!response.ok) {
-                throw new Error(result.error || `Failed to analyze ${file.file.name}.`);
-            }
-            results.push(result.analysisResult);
-        } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : 'An error occurred during analysis. Please try again.';
-            setError(errorMessage);
-            break; // Stop on the first error
-        } 
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to analyze files.');
+      }
+      setAnalysisResults(result.analysisResults);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred during analysis. Please try again.';
+      setError(errorMessage);
     }
 
-    setAnalysisResults(results);
     setIsAnalyzing(false);
   };
 

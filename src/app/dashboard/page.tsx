@@ -10,13 +10,28 @@ async function getAnalysisData(): Promise<AnalysisData[]> {
     await client.connect();
     const db = client.db('media_links');
     const mediaCollection = db.collection<AnalysisData>('links');
-    const data = await mediaCollection.find({}).toArray();
+    const data = await mediaCollection.find({}).sort({ timestamp: -1 }).toArray();
     await client.close();
     return data;
 }
 
+const groupDataByDate = (data: AnalysisData[]) => {
+  const groupedData: { [key: string]: AnalysisData[] } = {};
+
+  data.forEach((item) => {
+    const date = new Date(item.timestamp).toLocaleDateString();
+    if (!groupedData[date]) {
+      groupedData[date] = [];
+    }
+    groupedData[date].push(item);
+  });
+
+  return groupedData;
+};
+
 const DashboardPage = async () => {
   const analysisData = await getAnalysisData();
+  const groupedData = groupDataByDate(analysisData);
 
   return (
     <div className="bg-gray-50 dark:bg-gray-900 min-h-screen">
@@ -26,7 +41,14 @@ const DashboardPage = async () => {
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">Browse, search, and filter all your analysis records.</p>
         </div>
         <OverallStatistics data={analysisData} />
-        <AnalysisTable data={analysisData} />
+        {
+          Object.entries(groupedData).map(([date, data]) => (
+            <div key={date} className="mb-12">
+              <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">{date}</h2>
+              <AnalysisTable data={data} />
+            </div>
+          ))
+        }
       </div>
     </div>
   );
