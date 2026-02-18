@@ -2,28 +2,41 @@
 
 import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
+import { MediaFile, MediaType } from '@/types/media';
 
-const FileIcon = ({ type }: { type: string }) => {
-  if (type.startsWith('image/')) {
+const getMediaType = (file: File): MediaType => {
+  if (file.type.startsWith('image/')) return 'image';
+  if (file.type.startsWith('video/')) return 'video';
+  if (file.type.startsWith('audio/')) return 'audio';
+  return 'image'; // default to image for unknown types
+};
+
+const FileIcon = ({ mediaType }: { mediaType: MediaType }) => {
+  if (mediaType === 'image') {
     return <>🖼️</>;
   }
-  if (type.startsWith('video/')) {
+  if (mediaType === 'video') {
     return <>🎥</>;
   }
-  if (type.startsWith('audio/')) {
+  if (mediaType === 'audio') {
     return <>🎵</>;
   }
   return <>📄</>;
 };
 
 export default function MultiUploadBox() {
-  const [files, setFiles] = useState<File[]>([]);
+  const [files, setFiles] = useState<MediaFile[]>([]);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    setFiles(prevFiles => [...prevFiles, ...acceptedFiles]);
+    const newMediaFiles: MediaFile[] = acceptedFiles.map(file => ({
+      fileName: file.name,
+      mediaType: getMediaType(file),
+      file,
+    }));
+    setFiles(prevFiles => [...prevFiles, ...newMediaFiles]);
   }, []);
 
-  const removeFile = (fileToRemove: File) => {
+  const removeFile = (fileToRemove: MediaFile) => {
     setFiles(prevFiles => prevFiles.filter(file => file !== fileToRemove));
   };
 
@@ -61,10 +74,10 @@ export default function MultiUploadBox() {
                 className="flex items-center justify-between p-4 bg-gray-100 dark:bg-gray-800 rounded-lg"
               >
                 <div className="flex items-center gap-4">
-                  <span className="text-2xl"><FileIcon type={file.type} /></span>
+                  <span className="text-2xl"><FileIcon mediaType={file.mediaType} /></span>
                   <div>
-                    <p className="font-semibold">{file.name}</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">{(file.size / 1024).toFixed(2)} KB</p>
+                    <p className="font-semibold">{file.fileName}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{(file.file.size / 1024).toFixed(2)} KB</p>
                   </div>
                 </div>
                 <button

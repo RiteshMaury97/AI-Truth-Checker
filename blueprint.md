@@ -34,17 +34,18 @@ A Next.js application for detecting deepfakes in images and videos. The applicat
 
 - **`/api/detect` (`src/app/api/detect/route.ts`):** The API endpoint for analyzing uploaded files.
 
-## Current Task: Multi-File Upload System
+### TypeScript Types
+
+- **`types/media.ts`:** Contains reusable TypeScript interfaces for the application.
+  - `MediaFile`: Represents a file uploaded by the user.
+  - `AnalysisResult`: Represents the result of a deepfake analysis.
+  - `ReportRecord`: A composite type that links a `MediaFile` to its `AnalysisResult`.
+
+## Current Task: TypeScript Types
 
 ### Plan
 
-1.  **Create the `MultiUploadBox` component.**
-    -   [x] Create the `MultiUploadBox.tsx` file in the `src/components` directory.
-    -   [x] Implement drag-and-drop functionality for file uploads.
-    -   [x] Support multiple image, video, and audio file types.
-    -   [x] Display a preview list of uploaded files with file-type icons.
-    -   [x] Add a "Remove" button to remove files from the list.
-2.  **Update the detection page.**
-    -   [x] Replace the existing `FileUpload` component with the new `MultiUploadBox` component.
-3.  **Remove the old `FileUpload` component.**
-    -   [x] Delete the `src/components/FileUpload.tsx` file.
+1.  **Create reusable interfaces.**
+    -   [x] Create the `types/media.ts` file.
+    -   [x] Define the `MediaFile`, `AnalysisResult`, and `ReportRecord` interfaces.
+
