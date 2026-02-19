@@ -1,50 +1,77 @@
 
 'use client';
 
-import { motion } from 'framer-motion';
-import { FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
+import { useState } from 'react';
 import Link from 'next/link';
+import { FaFilePdf, FaFileVideo, FaFileAudio, FaFileImage, FaChevronDown, FaChevronUp, FaFileAlt } from 'react-icons/fa';
 
-const AnalysisReport = ({ reports }) => {
-  if (!reports || reports.length === 0) return null;
+const AnalysisReport = ({ report }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const getFileIcon = (type) => {
+    if (type.startsWith('image')) return <FaFileImage className="text-cyan-400" />;
+    if (type.startsWith('video')) return <FaFileVideo className="text-cyan-400" />;
+    if (type.startsWith('audio')) return <FaFileAudio className="text-cyan-400" />;
+    if (type === 'application/pdf') return <FaFilePdf className="text-cyan-400" />;
+    return <FaFileAlt className="text-cyan-400" />;
+  };
+
+  const confidenceColor = report.isDeepfake ? 'text-red-400' : 'text-green-400';
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="mt-12 w-full max-w-4xl mx-auto bg-gray-800 rounded-2xl shadow-lg p-8"
-    >
-      <h2 className="text-3xl font-bold text-white mb-6">Analysis Results</h2>
-      <div className="space-y-6">
-        {reports.map((report, index) => (
-          <motion.div
-            key={index}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: index * 0.1 }}
-            className="bg-gray-700 p-6 rounded-lg flex items-center justify-between"
-          >
-            <div className="flex items-center space-x-4">
-              {report.isdeepfake ? (
-                <FaTimesCircle className="text-4xl text-red-500" />
-              ) : (
-                <FaCheckCircle className="text-4xl text-green-500" />
-              )}
+    <div className="bg-gray-800 rounded-2xl shadow-lg transition-all duration-300 ease-in-out hover:shadow-2xl hover:-translate-y-1">
+      <div className="p-6 flex items-center space-x-6 cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
+        <div className="text-3xl">{getFileIcon(report.type)}</div>
+        <div className="flex-1">
+          <p className="font-semibold text-white truncate">{report.name}</p>
+          <p className="text-sm text-gray-400">{(report.size / 1024 / 1024).toFixed(2)} MB</p>
+        </div>
+        <div className="flex items-center space-x-4">
+            <div className={`text-lg font-bold ${confidenceColor}`}>
+                {report.isDeepfake ? 'Deepfake' : 'Authentic'}
+            </div>
+            <div className="text-gray-400 text-2xl">
+                {isExpanded ? <FaChevronUp /> : <FaChevronDown />}
+            </div>
+        </div>
+      </div>
+
+      {isExpanded && (
+        <div className="px-6 pb-6 border-t border-gray-700">
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h3 className="text-lg font-semibold text-white mb-2">Analysis Details</h3>
+              <p className="text-sm text-gray-400 mb-4">{report.explanation}</p>
+            </div>
+            <div className="space-y-4">
               <div>
-                <p className="text-xl font-semibold text-white">{report.name}</p>
-                <p className={`text-lg ${report.isdeepfake ? 'text-red-400' : 'text-green-400'}`}>
-                  Confidence Score: {report.confidence}%
-                </p>
+                <p className="flex justify-between text-sm text-white"><span>Confidence</span> <span className={`${confidenceColor} font-semibold`}>{report.confidence}%</span></p>
+                <div className="w-full bg-gray-700 rounded-full h-2.5 mt-1">
+                  <div className={`bg-gradient-to-r ${report.isDeepfake ? 'from-red-500 to-red-400' : 'from-green-500 to-green-400'} h-2.5 rounded-full`} style={{ width: `${report.confidence}%` }}></div>
+                </div>
+              </div>
+              <div>
+                <p className="flex justify-between text-sm text-white"><span>Fabrication Ratio</span> <span className="text-yellow-400 font-semibold">{report.fabricationRatio}%</span></p>
+                <div className="w-full bg-gray-700 rounded-full h-2.5 mt-1">
+                  <div className="bg-gradient-to-r from-yellow-500 to-yellow-400 h-2.5 rounded-full" style={{ width: `${report.fabricationRatio}%` }}></div>
+                </div>
+              </div>
+              <div>
+                <p className="flex justify-between text-sm text-white"><span>Metadata Authenticity</span> <span className="text-blue-400 font-semibold">{report.metadataAuthenticityScore}%</span></p>
+                <div className="w-full bg-gray-700 rounded-full h-2.5 mt-1">
+                  <div className="bg-gradient-to-r from-blue-500 to-blue-400 h-2.5 rounded-full" style={{ width: `${report.metadataAuthenticityScore}%` }}></div>
+                </div>
               </div>
             </div>
-            <Link href={`/dashboard/report/${report._id}`} className="text-cyan-400 hover:text-cyan-300 font-semibold transition-colors">
-              View Full Report
+          </div>
+          <div className="mt-6 text-center">
+            <Link href={`/dashboard/report/${report._id}`} className="inline-block bg-cyan-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-cyan-600 transition-colors duration-300">
+                View Full Report
             </Link>
-          </motion.div>
-        ))}
-      </div>
-    </motion.div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 

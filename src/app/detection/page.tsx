@@ -1,12 +1,12 @@
 
-'use client';
+"use client";
 
 import { useState } from 'react';
 import MultiUploadBox from '@/components/MultiUploadBox';
 import AnalysisReport from '@/components/AnalysisReport';
 
 const DetectionPage = () => {
-  const [analysisResults, setAnalysisResults] = useState(null);
+  const [analysisResults, setAnalysisResults] = useState([]);
 
   const handleAnalysisComplete = (reports) => {
     setAnalysisResults(reports);
@@ -19,7 +19,11 @@ const DetectionPage = () => {
         <p className="text-xl text-gray-300">Upload your images, videos, or audio files to detect if they have been manipulated by AI.</p>
       </div>
       <MultiUploadBox onAnalysisComplete={handleAnalysisComplete} />
-      {analysisResults && <AnalysisReport reports={analysisResults} />}
+      <div className="mt-8 space-y-4">
+        {analysisResults && analysisResults.length > 0 && analysisResults.map((report) => (
+          <AnalysisReport key={report._id} report={report} />
+        ))}
+      </div>
     </div>
   );
 };

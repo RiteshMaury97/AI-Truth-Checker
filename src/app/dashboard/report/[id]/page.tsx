@@ -26,6 +26,7 @@ const ReportPage = async ({ params }) => {
   }
 
   const confidenceColor = report.isdeepfake ? 'text-red-400' : 'text-green-400';
+  const fabricationColor = report.fabricationRatio > 50 ? 'text-yellow-400' : 'text-blue-400';
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-6 md:p-8">
@@ -70,9 +71,17 @@ const ReportPage = async ({ params }) => {
                   <div className={`h-4 rounded-full ${report.isdeepfake ? 'bg-red-500' : 'bg-green-500'}`} style={{ width: `${report.confidence}%` }}></div>
                 </div>
                 
-                <div className="mb-4">
-                    <p className="text-xl font-bold mb-2">Classification</p>
-                    <p className={`text-2xl font-semibold ${confidenceColor}`}>{report.isdeepfake ? 'Deepfake Detected' : 'Authentic'}</p>
+                <div className="mb-6">
+                  <p className="text-xl font-bold mb-2">Classification</p>
+                  <p className={`text-2xl font-semibold ${confidenceColor}`}>{report.isdeepfake ? 'Deepfake Detected' : 'Authentic'}</p>
+                </div>
+
+                <div className="mb-6">
+                  <p className="text-xl font-bold mb-2">Fabrication Ratio</p>
+                  <p className={`text-2xl font-semibold ${fabricationColor}`}>{report.fabricationRatio}%</p>
+                   <div className="w-full bg-gray-600 rounded-full h-4 mt-2">
+                    <div className={`h-4 rounded-full ${report.fabricationRatio > 50 ? 'bg-yellow-500' : 'bg-blue-500'}`} style={{ width: `${report.fabricationRatio}%` }}></div>
+                  </div>
                 </div>
 
                 <div>
