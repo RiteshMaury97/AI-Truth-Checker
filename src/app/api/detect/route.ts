@@ -76,7 +76,6 @@ Example:
     return JSON.parse(match[0]);
 }
 
-
 async function analyzeMetadata(fileUrl: string, fileBuffer: Buffer) {
     let metadataOutput = '';
     try {
@@ -111,97 +110,160 @@ async function analyzeMetadata(fileUrl: string, fileBuffer: Buffer) {
     }
 }
 
-export async function POST(req: Request) {
-  console.log('Received POST request to /api/detect');
-  let files;
-  try {
-    const body = await req.json();
-    files = body.files;
-  } catch (error) {
-    console.error('Error parsing request body:', error);
-    return NextResponse.json({ message: 'Invalid JSON in request' }, { status: 400 });
-  }
+async function generateExplanation(analysisResult: any) {
+    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+    const prompt = `
+        You are a senior digital forensics analyst delivering a final report.
+        Based on the following structured analysis data, generate a human-readable explanation and actionable verification tips.
 
-  if (!files || !Array.isArray(files)) {
-    console.log('Invalid request format, files not found.');
-    return NextResponse.json({ message: 'Invalid request' }, { status: 400 });
-  }
+        **Analysis Data:**
+        - Authenticity Status: ${analysisResult.authenticityStatus}
+        - Final Authenticity Score: ${analysisResult.authenticity.toFixed(2)}%
+        - Media Type: ${analysisResult.type}
+        ${analysisResult.visualAuthenticityScore ? `- Visual Authenticity Score: ${analysisResult.visualAuthenticityScore}%` : ''}
+        ${analysisResult.videoAuthenticityScore ? `- Video Authenticity Score: ${analysisResult.videoAuthenticityScore}%` : ''}
+        ${analysisResult.audioAuthenticityScore ? `- Audio Authenticity Score: ${analysisResult.audioAuthenticityScore}%` : ''}
+        - Metadata Authenticity Score: ${analysisResult.metadataAuthenticityScore}%
 
-  console.log(`Processing ${files.length} files.`);
+        **Your Task:**
+        1.  **Generate a comprehensive, easy-to-understand explanation.** Synthesize the data above to explain *why* the file received its authenticity status.
+        2.  **Provide a list of concrete, actionable verification steps.**
 
-  try {
-    console.log('Connecting to database...');
-    const { db } = await connectToDatabase();
-    console.log('Database connection successful.');
-
-    const reportsToInsert = [];
-
-    for (const file of files) {
-        console.log(`Analyzing file: ${file.url}`);
-        let analysisResult: any = {};
-        const response = await fetch(file.url);
-        const fileBuffer = await response.arrayBuffer();
-
-        try {
-            const metadata = await analyzeMetadata(file.url, Buffer.from(fileBuffer));
-            analysisResult = { ...analysisResult, ...metadata };
-
-            let authenticity = 0;
-
-            if (file.type.startsWith('image')) {
-                const imageAnalysis = await analyzeImage(file.url, Buffer.from(fileBuffer));
-                analysisResult = { ...analysisResult, ...imageAnalysis };
-                authenticity = (analysisResult.visualAuthenticityScore * 0.7) + (analysisResult.metadataAuthenticityScore * 0.3);
-            } else if (file.type.startsWith('video')) {
-                const videoAnalysis = await analyzeVideo(file.url);
-                const audioAnalysis = await analyzeAudio(file.url); // Run audio analysis on video
-                analysisResult = { ...analysisResult, ...videoAnalysis, ...audioAnalysis };
-                authenticity = (analysisResult.videoAuthenticityScore * 0.6) + (analysisResult.audioAuthenticityScore * 0.2) + (analysisResult.metadataAuthenticityScore * 0.2);
-            } else if (file.type.startsWith('audio')) {
-                const audioAnalysis = await analyzeAudio(file.url);
-                analysisResult = { ...analysisResult, ...audioAnalysis };
-                authenticity = (analysisResult.audioAuthenticityScore * 0.8) + (analysisResult.metadataAuthenticityScore * 0.2);
-            }
-            
-            analysisResult.authenticity = Math.max(0, Math.min(100, authenticity));
-
-            if (analysisResult.authenticity >= 70) {
-                analysisResult.authenticityStatus = 'Likely Authentic';
-            } else if (analysisResult.authenticity >= 40) {
-                analysisResult.authenticityStatus = 'Suspicious';
-            } else {
-                analysisResult.authenticityStatus = 'Likely AI Generated / Fabricated';
-            }
-
-            const reportDocument = {
-                ...file,
-                ...analysisResult,
-                status: 'completed',
-                createdAt: new Date(),
-            };
-            reportsToInsert.push(reportDocument);
-            console.log(`Successfully analyzed file: ${file.url}`);
-        } catch (error) {
-            console.error(`Failed to analyze file: ${file.url}`, error);
-            const failedReport = {
-                ...file,
-                status: 'failed',
-                error: error.message,
-                createdAt: new Date(),
-            };
-            reportsToInsert.push(failedReport);
+        **Return a single, clean JSON object with the following structure and nothing else:**
+        {
+          "explanation": "A string containing your detailed explanation.",
+          "verificationTips": ["A string array of tips."]
         }
+    `;
+
+    try {
+        const result = await model.generateContent(prompt);
+        const text = result.response.text();
+        const jsonMatch = text.match(/{[\s\S]*}/);
+        if (jsonMatch) {
+            return JSON.parse(jsonMatch[0]);
+        }
+        return {
+            explanation: "Could not generate a detailed explanation.",
+            verificationTips: []
+        };
+    } catch (error) {
+        console.error("Error generating final explanation with Gemini", error);
+        return {
+            explanation: "An error occurred while generating the final explanation.",
+            verificationTips: []
+        };
+    }
+}
+
+export async function POST(req: Request) {
+    console.log('Received POST request to /api/detect');
+    let files;
+    try {
+        const body = await req.json();
+        files = body.files;
+    } catch (error) {
+        console.error('Error parsing request body:', error);
+        return NextResponse.json({ message: 'Invalid JSON in request' }, { status: 400 });
     }
 
-    if (reportsToInsert.length > 0) {
-      console.log('Inserting reports into database...');
-      await db.collection('analysisReports').insertMany(reportsToInsert);
-      console.log('Reports inserted successfully.');
+    if (!files || !Array.isArray(files)) {
+        console.log('Invalid request format, files not found.');
+        return NextResponse.json({ message: 'Invalid request' }, { status: 400 });
     }
 
-    return NextResponse.json({ reports: reportsToInsert }, { status: 201 });
-  } catch (error) {
-    console.error('Error processing analysis request:', error);
-    return NextResponse.json({ message: error.message, stack: error.stack }, { status: 500 });
-  }
+    console.log(`Processing ${files.length} files.`);
+
+    try {
+        const { db } = await connectToDatabase();
+        const clientReports = [];
+
+        for (const file of files) {
+            try {
+                // Create MediaUpload Document
+                const mediaUpload = {
+                    fileName: file.name,
+                    mediaType: file.type,
+                    imagekitUrl: file.url,
+                    uploadDate: new Date(),
+                    createdAt: new Date(),
+                };
+                const mediaUploadResult = await db.collection('mediaUploads').insertOne(mediaUpload);
+                const mediaUploadId = mediaUploadResult.insertedId;
+
+                // Perform Analysis
+                let analysisResult: any = { type: file.type };
+                const response = await fetch(file.url);
+                const fileBuffer = await response.arrayBuffer();
+                const metadata = await analyzeMetadata(file.url, Buffer.from(fileBuffer));
+                analysisResult = { ...analysisResult, ...metadata };
+
+                let authenticity = 0;
+                if (file.type.startsWith('image')) {
+                    const imageAnalysis = await analyzeImage(file.url, Buffer.from(fileBuffer));
+                    analysisResult = { ...analysisResult, ...imageAnalysis };
+                    authenticity = (analysisResult.visualAuthenticityScore * 0.7) + (analysisResult.metadataAuthenticityScore * 0.3);
+                } else if (file.type.startsWith('video')) {
+                    const videoAnalysis = await analyzeVideo(file.url);
+                    const audioAnalysis = await analyzeAudio(file.url);
+                    analysisResult = { ...analysisResult, ...videoAnalysis, ...audioAnalysis };
+                    authenticity = (analysisResult.videoAuthenticityScore * 0.6) + (analysisResult.audioAuthenticityScore * 0.2) + (analysisResult.metadataAuthenticityScore * 0.2);
+                } else if (file.type.startsWith('audio')) {
+                    const audioAnalysis = await analyzeAudio(file.url);
+                    analysisResult = { ...analysisResult, ...audioAnalysis };
+                    authenticity = (analysisResult.audioAuthenticityScore * 0.8) + (analysisResult.metadataAuthenticityScore * 0.2);
+                }
+
+                analysisResult.authenticity = Math.max(0, Math.min(100, authenticity));
+
+                if (analysisResult.authenticity >= 70) {
+                    analysisResult.authenticityStatus = 'Likely Authentic';
+                } else if (analysisResult.authenticity >= 40) {
+                    analysisResult.authenticityStatus = 'Suspicious';
+                } else {
+                    analysisResult.authenticityStatus = 'Likely AI Generated / Fabricated';
+                }
+
+                const explanationLayer = await generateExplanation(analysisResult);
+
+                // Create AnalysisReport Document
+                const analysisReport = {
+                    mediaUploadId: mediaUploadId,
+                    fileName: file.name,
+                    mediaType: file.type,
+                    imagekitUrl: file.url,
+                    authenticityPercentage: parseFloat(analysisResult.authenticity.toFixed(2)),
+                    authenticityStatus: analysisResult.authenticityStatus,
+                    metadataScore: analysisResult.metadataAuthenticityScore,
+                    visualScore: analysisResult.visualAuthenticityScore ?? null,
+                    audioScore: analysisResult.audioAuthenticityScore ?? null,
+                    explanation: explanationLayer.explanation,
+                    verificationTips: explanationLayer.verificationTips,
+                    analyzedDate: new Date(),
+                    createdAt: new Date(),
+                };
+
+                const analysisReportResult = await db.collection('analysisReports').insertOne(analysisReport);
+                const reportId = analysisReportResult.insertedId;
+
+                // Link Report to Upload
+                await db.collection('mediaUploads').updateOne(
+                    { _id: mediaUploadId },
+                    { $set: { analysisReportId: reportId } }
+                );
+                
+                clientReports.push(analysisReport);
+
+            } catch (error) {
+                console.error(`Failed to analyze file: ${file.url}`, error);
+                clientReports.push({ fileName: file.name, error: error.message });
+            }
+        }
+
+        return NextResponse.json({ reports: clientReports }, { status: 201 });
+
+    } catch (error) {
+        console.error('Error processing analysis request:', error);
+        return NextResponse.json({ message: error.message, stack: error.stack }, { status: 500 });
+    }
 }
