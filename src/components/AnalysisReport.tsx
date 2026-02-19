@@ -17,6 +17,7 @@ const AnalysisReport = ({ report }) => {
   };
 
   const confidenceColor = report.isDeepfake ? 'text-red-400' : 'text-green-400';
+  const score = report.visualAuthenticityScore ?? report.videoAuthenticityScore ?? report.audioAuthenticityScore ?? 0;
 
   return (
     <div className="bg-gray-800 rounded-2xl shadow-lg transition-all duration-300 ease-in-out hover:shadow-2xl hover:-translate-y-1">
@@ -28,7 +29,7 @@ const AnalysisReport = ({ report }) => {
         </div>
         <div className="flex items-center space-x-4">
             <div className={`text-lg font-bold ${confidenceColor}`}>
-                {report.isDeepfake ? 'Deepfake' : 'Authentic'}
+                {score}% Authentic
             </div>
             <div className="text-gray-400 text-2xl">
                 {isExpanded ? <FaChevronUp /> : <FaChevronDown />}
@@ -44,24 +45,18 @@ const AnalysisReport = ({ report }) => {
               <p className="text-sm text-gray-400 mb-4">{report.explanation}</p>
             </div>
             <div className="space-y-4">
-              <div>
-                <p className="flex justify-between text-sm text-white"><span>Confidence</span> <span className={`${confidenceColor} font-semibold`}>{report.confidence}%</span></p>
-                <div className="w-full bg-gray-700 rounded-full h-2.5 mt-1">
-                  <div className={`bg-gradient-to-r ${report.isDeepfake ? 'from-red-500 to-red-400' : 'from-green-500 to-green-400'} h-2.5 rounded-full`} style={{ width: `${report.confidence}%` }}></div>
+                <div>
+                    <p className="flex justify-between text-sm text-white"><span>Visual Authenticity</span> <span className={`${confidenceColor} font-semibold`}>{score}%</span></p>
+                    <div className="w-full bg-gray-700 rounded-full h-2.5 mt-1">
+                    <div className={`bg-gradient-to-r ${score > 50 ? 'from-green-500 to-green-400' : 'from-red-500 to-red-400'} h-2.5 rounded-full`} style={{ width: `${score}%` }}></div>
+                    </div>
                 </div>
-              </div>
-              <div>
-                <p className="flex justify-between text-sm text-white"><span>Fabrication Ratio</span> <span className="text-yellow-400 font-semibold">{report.fabricationRatio}%</span></p>
-                <div className="w-full bg-gray-700 rounded-full h-2.5 mt-1">
-                  <div className="bg-gradient-to-r from-yellow-500 to-yellow-400 h-2.5 rounded-full" style={{ width: `${report.fabricationRatio}%` }}></div>
+                <div>
+                    <p className="flex justify-between text-sm text-white"><span>Metadata Authenticity</span> <span className="text-blue-400 font-semibold">{report.metadataAuthenticityScore}%</span></p>
+                    <div className="w-full bg-gray-700 rounded-full h-2.5 mt-1">
+                    <div className="bg-gradient-to-r from-blue-500 to-blue-400 h-2.5 rounded-full" style={{ width: `${report.metadataAuthenticityScore}%` }}></div>
+                    </div>
                 </div>
-              </div>
-              <div>
-                <p className="flex justify-between text-sm text-white"><span>Metadata Authenticity</span> <span className="text-blue-400 font-semibold">{report.metadataAuthenticityScore}%</span></p>
-                <div className="w-full bg-gray-700 rounded-full h-2.5 mt-1">
-                  <div className="bg-gradient-to-r from-blue-500 to-blue-400 h-2.5 rounded-full" style={{ width: `${report.metadataAuthenticityScore}%` }}></div>
-                </div>
-              </div>
             </div>
           </div>
           <div className="mt-6 text-center">
