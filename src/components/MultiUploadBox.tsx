@@ -3,9 +3,9 @@
 
 import { useState } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { FaFileImage, FaFileVideo, FaFileAudio, FaTimes } from 'react-icons/fa';
+import { FaFileImage, FaFileVideo, FaFileAudio, FaTimes, FaExclamationTriangle } from 'react-icons/fa';
 import { motion } from 'framer-motion';
-import { useRouter } from 'next/navigation'; // Import the useRouter hook
+import { useRouter } from 'next/navigation';
 
 const fileTypeIcons = {
   'image/': FaFileImage,
@@ -13,15 +13,18 @@ const fileTypeIcons = {
   'audio/': FaFileAudio,
 };
 
-const MultiUploadBox = () => {
+const MultiUploadBox = ({ onAnalysisComplete }) => {
   const [files, setFiles] = useState([]);
   const [rejectedFiles, setRejectedFiles] = useState([]);
-  const router = useRouter(); // Initialize the router
+  const [error, setError] = useState(null);
+  const router = useRouter();
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: (acceptedFiles, fileRejections) => {
       setFiles(prevFiles => [...prevFiles, ...acceptedFiles]);
       setRejectedFiles(prevFiles => [...prevFiles, ...fileRejections]);
+      setError(null);
+      onAnalysisComplete(null); // Clear previous results
     },
     accept: {
       'image/*': [],
@@ -36,6 +39,7 @@ const MultiUploadBox = () => {
 
   const handleAnalyze = async () => {
     if (files.length === 0) return;
+    setError(null);
 
     const formData = new FormData();
     files.forEach(file => {
@@ -43,19 +47,18 @@ const MultiUploadBox = () => {
     });
 
     try {
-      // Step 1: Upload files to get their URLs
       const uploadResponse = await fetch('/api/upload', {
         method: 'POST',
         body: formData,
       });
 
       if (!uploadResponse.ok) {
-        throw new Error('File upload failed');
+        const errorData = await uploadResponse.json().catch(() => ({ message: 'File upload failed' }));
+        throw new Error(errorData.message);
       }
 
       const uploadResult = await uploadResponse.json();
 
-      // Step 2: Trigger analysis with the returned URLs
       const analysisResponse = await fetch('/api/detect', {
         method: 'POST',
         headers: {
@@ -65,15 +68,16 @@ const MultiUploadBox = () => {
       });
 
       if (!analysisResponse.ok) {
-        throw new Error('Analysis request failed');
+        const errorData = await analysisResponse.json().catch(() => ({ message: 'Analysis request failed' }));
+        throw new Error(errorData.message);
       }
 
-      // Step 3: Redirect to the detection page to show the results
-      router.push('/detection');
+      const analysisResult = await analysisResponse.json();
+      onAnalysisComplete(analysisResult.reports);
 
-    } catch (error) {
-      console.error('An error occurred:', error);
-      // Handle errors (e.g., show a notification to the user)
+    } catch (err) {
+      console.error('An error occurred:', err);
+      setError(err.message);
     }
   };
 
@@ -84,6 +88,21 @@ const MultiUploadBox = () => {
         <p className="text-2xl font-semibold text-gray-300">Drag & drop files here, or click to select</p>
         <p className="text-gray-500 mt-2">Image, Video, or Audio</p>
       </div>
+
+      {error && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-8 p-4 bg-red-900 border border-red-700 rounded-lg text-white flex items-center space-x-4"
+        >
+          <FaExclamationTriangle className="text-2xl" />
+          <div>
+            <p className="font-bold">An error occurred:</p>
+            <p>{error}</p>
+            <button onClick={() => setError(null)} className="mt-2 px-3 py-1 bg-red-700 hover:bg-red-600 rounded font-semibold">Clear</button>
+          </div>
+        </motion.div>
+      )}
 
       <div className="mt-8">
         {files.length > 0 && (
