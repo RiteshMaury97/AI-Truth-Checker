@@ -9,7 +9,7 @@ import { FaProjectDiagram } from 'react-icons/fa';
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
 
-  const menuItems = ['Home', 'Detection', 'Dashboard', 'Reports', 'About'];
+  const menuItems = ['Home', 'Detection']; // Simplified navigation
 
   return (
     <motion.nav
@@ -31,7 +31,7 @@ const Navbar = () => {
               {menuItems.map((item) => (
                 <Link
                   key={item}
-                  href={`/${item.toLowerCase()}`}
+                  href={item.toLowerCase() === 'home' ? '/' : `/${item.toLowerCase()}`}
                   className="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors duration-300"
                 >
                   {item}
@@ -72,7 +72,7 @@ const Navbar = () => {
             {menuItems.map((item) => (
               <Link
                 key={item}
-                href={`/${item.toLowerCase()}`}
+                href={item.toLowerCase() === 'home' ? '/' : `/${item.toLowerCase()}`}
                 className="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium transition-colors duration-300"
               >
                 {item}

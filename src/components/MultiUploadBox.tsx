@@ -3,34 +3,37 @@
 
 import { useState } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { FaFileImage, FaFileVideo, FaFileAudio, FaTimes } from 'react-icons/fa';
+import { FaFileImage, FaFileVideo, FaTimes } from 'react-icons/fa';
 import { motion } from 'framer-motion';
-import { useRouter } from 'next/navigation'; // Import the useRouter hook
+import { useRouter } from 'next/navigation';
 
-const fileTypeIcons = {
+// Define a type for the files with the additional filePath property
+interface UploadedFile extends File {
+  filePath?: string;
+}
+
+const fileTypeIcons: { [key: string]: React.ElementType } = {
   'image/': FaFileImage,
   'video/': FaFileVideo,
-  'audio/': FaFileAudio,
 };
 
 const MultiUploadBox = () => {
-  const [files, setFiles] = useState([]);
-  const [rejectedFiles, setRejectedFiles] = useState([]);
-  const router = useRouter(); // Initialize the router
+  const [files, setFiles] = useState<UploadedFile[]>([]);
+  const [rejectedFiles, setRejectedFiles] = useState<any[]>([]);
+  const router = useRouter();
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: (acceptedFiles, fileRejections) => {
       setFiles(prevFiles => [...prevFiles, ...acceptedFiles]);
-      setRejectedFiles(prevFiles => [...prevFiles, ...fileRejections]);
+      setRejectedFiles(prevRejections => [...prevRejections, ...fileRejections]);
     },
     accept: {
-      'image/*': [],
-      'video/*': [],
-      'audio/*': [],
+      'image/*': ['.jpeg', '.png', '.gif', '.webp'],
+      'video/*': ['.mp4', '.webm', '.mov', '.mkv'],
     },
   });
 
-  const removeFile = (file) => {
+  const removeFile = (file: UploadedFile) => {
     setFiles(files.filter(f => f !== file));
   };
 
@@ -43,7 +46,7 @@ const MultiUploadBox = () => {
     });
 
     try {
-      // Step 1: Upload files to get their URLs
+      // Step 1: Upload files to get their URLs and filePaths
       const uploadResponse = await fetch('/api/upload', {
         method: 'POST',
         body: formData,
@@ -55,13 +58,13 @@ const MultiUploadBox = () => {
 
       const uploadResult = await uploadResponse.json();
 
-      // Step 2: Trigger analysis with the returned URLs
+      // Step 2: Trigger analysis with the FULL file info, including filePath
       const analysisResponse = await fetch('/api/detect', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ files: uploadResult.files }),
+        body: JSON.stringify({ files: uploadResult.files }), // Send the enhanced file objects
       });
 
       if (!analysisResponse.ok) {
@@ -73,7 +76,6 @@ const MultiUploadBox = () => {
 
     } catch (error) {
       console.error('An error occurred:', error);
-      // Handle errors (e.g., show a notification to the user)
     }
   };
 
@@ -82,7 +84,7 @@ const MultiUploadBox = () => {
       <div {...getRootProps()} className={`p-8 border-4 border-dashed rounded-2xl text-center cursor-pointer transition-colors duration-300 ${isDragActive ? 'border-cyan-400 bg-gray-800' : 'border-gray-600 hover:border-cyan-500'}`}>
         <input {...getInputProps()} />
         <p className="text-2xl font-semibold text-gray-300">Drag & drop files here, or click to select</p>
-        <p className="text-gray-500 mt-2">Image, Video, or Audio</p>
+        <p className="text-gray-500 mt-2">Images and Videos Supported</p>
       </div>
 
       <div className="mt-8">

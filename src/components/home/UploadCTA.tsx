@@ -4,6 +4,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { FaUpload } from 'react-icons/fa';
+import Link from 'next/link'; // Import the Link component
 
 const UploadCTA = () => {
   return (
@@ -18,13 +19,15 @@ const UploadCTA = () => {
           <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-6">
             Start Detecting AI Fabricated Media Now
           </h2>
-          <motion.button
-            whileHover={{ scale: 1.05, boxShadow: '0 0 30px rgba(255, 255, 255, 0.5)' }}
-            className="flex items-center justify-center gap-3 px-8 py-4 bg-white text-gray-900 font-semibold rounded-full shadow-lg transform transition-transform duration-300 mx-auto"
-          >
-            <FaUpload />
-            <span>Upload Files</span>
-          </motion.button>
+          <Link href="/detection"> 
+            <motion.button
+              whileHover={{ scale: 1.05, boxShadow: '0 0 30px rgba(255, 255, 255, 0.5)' }}
+              className="flex items-center justify-center gap-3 px-8 py-4 bg-white text-gray-900 font-semibold rounded-full shadow-lg transform transition-transform duration-300 mx-auto"
+            >
+              <FaUpload />
+              <span>Upload Files</span>
+            </motion.button>
+          </Link>
         </motion.div>
       </div>
     </section>
