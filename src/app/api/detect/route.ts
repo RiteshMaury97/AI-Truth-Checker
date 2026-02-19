@@ -6,7 +6,10 @@ import imageKit from '@/lib/imagekit'; // Import the ImageKit SDK instance
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
+<<<<<<< HEAD
 // This function remains largely the same, but it no longer needs complex retry logic.
+=======
+>>>>>>> 1d1aefd (night work)
 async function analyzeMedia(fileUrl: string, prompt: string) {
   try {
     const model = genAI.getGenerativeModel({ 
@@ -19,9 +22,15 @@ async function analyzeMedia(fileUrl: string, prompt: string) {
       ]
     });
 
+<<<<<<< HEAD
     const fetchResponse = await fetch(fileUrl);
     if (!fetchResponse.ok) {
       throw new Error(`Failed to fetch media file at ${fileUrl}. Status: ${fetchResponse.status}`);
+=======
+    const response = await fetch(fileUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch media file: ${response.status} ${response.statusText}`);
+>>>>>>> 1d1aefd (night work)
     }
 
     const imageBuffer = await fetchResponse.arrayBuffer();
@@ -38,10 +47,18 @@ async function analyzeMedia(fileUrl: string, prompt: string) {
     const apiResponse = result.response;
 
     if (apiResponse.promptFeedback && apiResponse.promptFeedback.blockReason) {
+<<<<<<< HEAD
+=======
+      console.error('Gemini request was blocked', { feedback: apiResponse.promptFeedback });
+>>>>>>> 1d1aefd (night work)
       throw new Error(`Analysis blocked by API due to ${apiResponse.promptFeedback.blockReason}`);
     }
 
     if (!apiResponse.candidates || apiResponse.candidates.length === 0) {
+<<<<<<< HEAD
+=======
+        console.error('Gemini analysis returned no content.', { response: apiResponse });
+>>>>>>> 1d1aefd (night work)
         throw new Error('Analysis from Gemini was empty or incomplete.');
     }
 
@@ -67,7 +84,11 @@ async function analyzeMedia(fileUrl: string, prompt: string) {
     };
   } catch (error) {
     console.error('Error during Gemini analysis execution:', error);
+<<<<<<< HEAD
     throw new Error('Failed to analyze with Gemini.');
+=======
+    throw new Error('Failed to analyze with Gemini');
+>>>>>>> 1d1aefd (night work)
   }
 }
 
@@ -87,6 +108,7 @@ export async function POST(req: Request) {
       let analysisUrl = file.url;
       let prompt = `Analyze this image to determine if it is a deepfake. Provide a confidence score from 0 to 100 and a brief explanation of your findings. Your response must be in the format: "Confidence Score: [score] Explanation: [text]".`;
 
+<<<<<<< HEAD
       // THE ROBUST FIX: Use filePath and the ImageKit SDK for videos
       if (file.type.startsWith('video/') && file.filePath) {
         analysisUrl = imageKit.url({
@@ -98,6 +120,20 @@ export async function POST(req: Request) {
           console.error(`Cannot generate thumbnail for video without a filePath. File: ${file.name}`);
           // Skip this file as we cannot process it correctly
           continue;
+=======
+      if (file.type.startsWith('video/')) {
+        try {
+            const url = new URL(file.url);
+            const pathParts = url.pathname.split('/');
+            if (pathParts.length > 2) {
+                pathParts.splice(2, 0, 'tr:f-jpg,so-1');
+                analysisUrl = `${url.origin}${pathParts.join('/')}`;
+                prompt = `Analyze this thumbnail image from a video to determine if it is a deepfake. Provide a confidence score from 0 to 100 and a brief explanation of your findings. Your response must be in the format: "Confidence Score: [score] Explanation: [text]".`;
+            }
+        } catch (e) {
+            console.error("Failed to transform video URL for thumbnail generation:", file.url, e);
+        }
+>>>>>>> 1d1aefd (night work)
       }
 
       const analysis = await analyzeMedia(analysisUrl, prompt);
@@ -120,3 +156,4 @@ export async function POST(req: Request) {
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }
+
