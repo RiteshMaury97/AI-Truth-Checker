@@ -16,8 +16,20 @@ const AnalysisReport = ({ report }) => {
     return <FaFileAlt className="text-cyan-400" />;
   };
 
-  const confidenceColor = report.isDeepfake ? 'text-red-400' : 'text-green-400';
-  const score = report.visualAuthenticityScore ?? report.videoAuthenticityScore ?? report.audioAuthenticityScore ?? 0;
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'Likely Authentic':
+        return 'text-green-400';
+      case 'Suspicious':
+        return 'text-yellow-400';
+      case 'Likely AI Generated / Fabricated':
+        return 'text-red-400';
+      default:
+        return 'text-gray-400';
+    }
+  };
+
+  const statusColor = getStatusColor(report.authenticityStatus);
 
   return (
     <div className="bg-gray-800 rounded-2xl shadow-lg transition-all duration-300 ease-in-out hover:shadow-2xl hover:-translate-y-1">
@@ -28,8 +40,8 @@ const AnalysisReport = ({ report }) => {
           <p className="text-sm text-gray-400">{(report.size / 1024 / 1024).toFixed(2)} MB</p>
         </div>
         <div className="flex items-center space-x-4">
-            <div className={`text-lg font-bold ${confidenceColor}`}>
-                {score}% Authentic
+            <div className={`text-lg font-bold ${statusColor}`}>
+                {report.authenticityStatus}
             </div>
             <div className="text-gray-400 text-2xl">
                 {isExpanded ? <FaChevronUp /> : <FaChevronDown />}
@@ -46,9 +58,9 @@ const AnalysisReport = ({ report }) => {
             </div>
             <div className="space-y-4">
                 <div>
-                    <p className="flex justify-between text-sm text-white"><span>Visual Authenticity</span> <span className={`${confidenceColor} font-semibold`}>{score}%</span></p>
+                    <p className="flex justify-between text-sm text-white"><span>Authenticity Score</span> <span className={`${statusColor} font-semibold`}>{report.authenticity.toFixed(2)}%</span></p>
                     <div className="w-full bg-gray-700 rounded-full h-2.5 mt-1">
-                    <div className={`bg-gradient-to-r ${score > 50 ? 'from-green-500 to-green-400' : 'from-red-500 to-red-400'} h-2.5 rounded-full`} style={{ width: `${score}%` }}></div>
+                    <div className={`bg-gradient-to-r ${report.authenticity > 70 ? 'from-green-500 to-green-400' : report.authenticity > 40 ? 'from-yellow-500 to-yellow-400' : 'from-red-500 to-red-400'} h-2.5 rounded-full`} style={{ width: `${report.authenticity}%` }}></div>
                     </div>
                 </div>
                 <div>
